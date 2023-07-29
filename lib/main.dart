@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:uhk_onboarding/user.dart';
 import 'types.dart';
 import 'api.dart';
 
@@ -16,7 +17,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'UHK Demo',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple, background: const Color(0xFFDEDCDC)),
         useMaterial3: true,
       ),
       home: const MyHomePage(title: 'User Overview'),
@@ -34,10 +35,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<User> users = [
-    // User(1, 'Michael', 'Heinrich', 'mh', Role.admin),
-    // User(1, 'Michael', 'Heinrich', 'mh', Role.admin),
-  ];
+  List<User> users = [];
 
   @override
   void initState() {
@@ -51,7 +49,8 @@ class _MyHomePageState extends State<MyHomePage> {
     print(fetchedUsers);
     setState(() {
       users = fetchedUsers;
-      roleCounts = users.map((e) => e.role).fold({}, (Map<String, int> map, String role) {
+      roleCounts = users.map((e) => e.role).fold({},
+          (Map<String, int> map, String role) {
         map[role] = (map[role] ?? 0) + 1;
         return map;
       });
@@ -61,55 +60,50 @@ class _MyHomePageState extends State<MyHomePage> {
 
   //I need to get the counts of roles
   Map<String, int> roleCounts = {
-    'admin': 0,
-    'manager': 0,
-    'technician': 0,
-    'asset': 0,
-    'ghost': 0,
+    'ADMIN': 0,
+    'MANAGER': 0,
+    'TECHNICIAN': 0,
+    'ASSET': 0,
+    'GHOST': 0,
   };
-
 
   //TODO: Add some mock data and try to display the roles in the grid
 
   //Istg I've done everything to center the last item xD
   //I'm just too lazy to do it with builder instead of count
-  List<Widget> _buildGridTileList() =>
-      List.generate(
+  List<Widget> _buildGridTileList() => List.generate(
         roleCounts.length,
-            (i) =>
-            FilledButton(
-              onPressed: null,
-              style: ButtonStyle(
-                backgroundColor:
+        (i) => FilledButton(
+          onPressed: null,
+          style: ButtonStyle(
+            backgroundColor:
                 MaterialStateProperty.all<Color>(Colors.deepPurple),
-                foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
-                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    side: const BorderSide(color: Colors.deepPurple),
-                  ),
-                ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(roleCounts.values.elementAt(i).toString(), style: const TextStyle(fontSize: 30)),
-                  Text(roleCounts.keys.elementAt(i)),
-                ],
+            foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+              RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+                side: const BorderSide(color: Colors.deepPurple),
               ),
             ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(roleCounts.values.elementAt(i).toString(),
+                  style: const TextStyle(fontSize: 30)),
+              Text(roleCounts.keys.elementAt(i)),
+            ],
+          ),
+        ),
       );
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFDEDCDC),
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        backgroundColor: Theme
-            .of(context)
-            .colorScheme
-            .inversePrimary,
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
         centerTitle: true,
       ),
@@ -182,56 +176,57 @@ class _MyHomePageState extends State<MyHomePage> {
             Card(
               margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 25),
               elevation: 2, // No shadow on the card to match iOS style
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                    vertical: 16, horizontal: 20),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 60,
-                      height: 60,
-                      child: CircleAvatar(radius: 20,
-                          child: Text(user.firstName[0] + user.lastName[0])),
-                    ),
-                    const SizedBox(width: 20),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('${user.firstName} ${user.lastName}',
-                              style: const TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 4),
-                          Text(user.role,
-                              style: const TextStyle(fontSize: 16,
-                                  color: Colors.grey)),
-                        ],
+              child: InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => UserPage(user: user)),
+                  );
+                },
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 60,
+                        height: 60,
+                        child: CircleAvatar(
+                            radius: 20,
+                            child: Text(user.firstName[0] + user.lastName[0])),
                       ),
-                    ),
-                    // CupertinoButton(
-                    //   onPressed: () {
-                    //     // Handle phone button tapped
-                    //   },
-                    //   child: Icon(CupertinoIcons.phone, size: 30),
-                    // ),
-                    // CupertinoButton(
-                    //   onPressed: () {
-                    //     // Handle mail button tapped
-                    //   },
-                    //   child: Icon(CupertinoIcons.mail, size: 30),
-                    // ),
-                  ],
+                      const SizedBox(width: 20),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('${user.firstName} ${user.lastName}',
+                                style: const TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 4),
+                            Text(user.role,
+                                style: const TextStyle(
+                                    fontSize: 16, color: Colors.grey)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          //   ]
-          // )
         ],
       ),
-      floatingActionButton: const FloatingActionButton(
-        onPressed: null,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => UserPage()),
+          );
+        },
         tooltip: 'add',
-        shape: CircleBorder(),
+        shape: const CircleBorder(),
         child: Icon(Icons.add),
       ),
       // floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,

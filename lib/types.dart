@@ -17,7 +17,7 @@ class User {
       json['firstName'] as String,
       json['lastName'] as String,
       json['username'] as String,
-      json['role'], // Convert string to Role enum
+      (json['role'] as String).toUpperCase(), // Convert string to Role enum
     );
   }
 
