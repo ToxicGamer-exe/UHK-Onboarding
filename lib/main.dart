@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:hive/hive.dart';
+import 'package:uhk_onboarding/sign_in.dart';
 import 'package:uhk_onboarding/user.dart';
 import 'types.dart';
 import 'api.dart';
 
 void main() {
   runApp(const MyApp());
-  getUsers();
 }
 
 class MyApp extends StatelessWidget {
@@ -17,11 +18,17 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'UHK Demo',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple, background: const Color(0xFFDEDCDC)),
+        colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.deepPurple, background: const Color(0xFFDEDCDC)),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'User Overview'),
+      home: isSignedIn() ? const MyHomePage(title: 'User Overview') : const SignInPage(),
     );
+  }
+
+  bool isSignedIn() {
+    bool isSigned = Hive.openBox('credentials').then((value) => value.containsKey('password')) as bool;
+    return isSigned;
   }
 }
 
@@ -40,6 +47,12 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    // if (true) {
+    //   Navigator.pushReplacement<void, void>(
+    //       context,
+    //       MaterialPageRoute<void>(
+    //           builder: (BuildContext context) => SignInPage()));
+    // }
     loadData();
     print("users: " + users.toString());
   }
