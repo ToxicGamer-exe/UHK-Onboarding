@@ -49,46 +49,27 @@ class _UserPageState extends State<UserPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CupertinoTextField(
+            CustomCupertinoTextField(
               placeholder: 'First name',
               controller: _firstNameController,
-              prefix: Padding(
-                padding: const EdgeInsets.only(left: 8.0),
-                child: Icon(
-                  CupertinoIcons.person_solid,
-                  color: CupertinoColors.systemGrey,
-                  size: 28,
-                ),
-              ),
-              suffix: CupertinoButton(
-                child: Icon(
-                  CupertinoIcons.clear_thick_circled,
-                  size: 28,
-                ),
-                onPressed: () => _firstNameController.clear(),
-              ),
-              suffixMode: OverlayVisibilityMode.editing,
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: CupertinoColors.lightBackgroundGray,
-                borderRadius: BorderRadius.circular(8),
-              ),
+              prefixIcon: CupertinoIcons.person_solid,
+              onClearPressed: () => _firstNameController.clear(),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 15),
             CustomCupertinoTextField(
               placeholder: 'Last name',
               controller: _lastNameController,
               prefixIcon: CupertinoIcons.signature,
               onClearPressed: () => _lastNameController.clear(),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 15),
             CustomCupertinoTextField(
               placeholder: 'Username',
               controller: _usernameController,
               prefixIcon: CupertinoIcons.tag,//or globe, gotta decide
               onClearPressed: () => _usernameController.clear(),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 15),
             CupertinoPicker.builder(
               itemExtent: 50,
               onSelectedItemChanged: null,

@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:hive/hive.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uhk_onboarding/sign_in.dart';
 import 'package:uhk_onboarding/user.dart';
 import 'types.dart';
 import 'api.dart';
 
-void main() {
+void main() async {
+  await Hive.initFlutter();
+  dotenv.load();
   runApp(const MyApp());
 }
 
@@ -22,13 +25,24 @@ class MyApp extends StatelessWidget {
             seedColor: Colors.deepPurple, background: const Color(0xFFDEDCDC)),
         useMaterial3: true,
       ),
-      home: isSignedIn() ? const MyHomePage(title: 'User Overview') : const SignInPage(),
+      home: FutureBuilder<bool>(
+        future: isSignedIn(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+          } else {
+            return (snapshot.data ?? false) ? const MyHomePage(title: 'User Overview') : const SignInPage();
+          }
+        },
+      ),
     );
   }
 
-  bool isSignedIn() {
-    bool isSigned = Hive.openBox('credentials').then((value) => value.containsKey('password')) as bool;
-    return isSigned;
+  Future<bool> isSignedIn() async {
+    final box = await Hive.openBox('credentials');
+    return box.containsKey('username') && box.containsKey('password');
   }
 }
 
@@ -235,12 +249,12 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => UserPage()),
+            MaterialPageRoute(builder: (context) => const UserPage()),
           );
         },
         tooltip: 'add',
         shape: const CircleBorder(),
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
       // floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
