@@ -24,6 +24,7 @@ FutureOr<List<User>> getUsers({int limit = 50}) async {
 Future<Response> signIn(String username, String password) async {
   print("Signing in with: " + username + " " + password);
   Response response = Response(requestOptions: RequestOptions());
+
   try {
     response = await dio.post('/auth/signin',
         data: json.encode({'username': username, 'password': password}));

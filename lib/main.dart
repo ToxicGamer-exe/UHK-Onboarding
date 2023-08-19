@@ -61,12 +61,6 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    // if (true) {
-    //   Navigator.pushReplacement<void, void>(
-    //       context,
-    //       MaterialPageRoute<void>(
-    //           builder: (BuildContext context) => SignInPage()));
-    // }
     loadData();
     print("users: " + users.toString());
   }
@@ -85,7 +79,6 @@ class _MyHomePageState extends State<MyHomePage> {
     // print("Fetched users: " + users.toString());
   }
 
-  //I need to get the counts of roles
   Map<String, int> roleCounts = {
     'ADMIN': 0,
     'MANAGER': 0,
@@ -133,6 +126,17 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.logout),
+          onPressed: () async {
+            final box = await Hive.openBox('user');
+            box.delete('username');
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const SignInPage()),
+            );
+          },
+        )
       ),
       body: ListView(
         children: <Widget>[
@@ -145,52 +149,6 @@ class _MyHomePageState extends State<MyHomePage> {
             padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 40),
             children: _buildGridTileList(),
           ),
-          // Container(
-          //   margin: EdgeInsets.symmetric(vertical: 8, horizontal: 150),
-          //   child: FilledButton(
-          //     onPressed: null,
-          //     child: Column(
-          //       children: [
-          //         Text('1'),
-          //         Text('admin'),
-          //       ],
-          //     ),
-          //     style: ButtonStyle(
-          //       padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
-          //           EdgeInsets.all(15)),
-          //       backgroundColor:
-          //           MaterialStateProperty.all<Color>(Colors.deepPurple),
-          //       foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
-          //       shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-          //           RoundedRectangleBorder(
-          //               borderRadius: BorderRadius.circular(10),
-          //               side: BorderSide(color: Colors.deepPurple))),
-          //     ),
-          //   ),
-          // ),
-          // Container(
-          //   margin: EdgeInsets.symmetric(vertical: 8, horizontal: 150),
-          //   child: FilledButton(
-          //     onPressed: null,
-          //     child: Column(
-          //       children: [
-          //         Text('1'),
-          //         Text('admin'),
-          //       ],
-          //     ),
-          //     style: ButtonStyle(
-          //       padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
-          //           EdgeInsets.all(15)),
-          //       backgroundColor:
-          //           MaterialStateProperty.all<Color>(Colors.deepPurple),
-          //       foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
-          //       shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-          //           RoundedRectangleBorder(
-          //               borderRadius: BorderRadius.circular(10),
-          //               side: BorderSide(color: Colors.deepPurple))),
-          //     ),
-          //   ),
-          // ),
           const Divider(
             color: Colors.black,
             height: 25,
