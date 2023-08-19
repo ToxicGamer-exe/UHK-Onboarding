@@ -41,8 +41,8 @@ class MyApp extends StatelessWidget {
   }
 
   Future<bool> isSignedIn() async {
-    final box = await Hive.openBox('credentials');
-    return box.containsKey('username') && box.containsKey('password');
+    final box = await Hive.openBox('user');
+    return box.containsKey('username');
   }
 }
 

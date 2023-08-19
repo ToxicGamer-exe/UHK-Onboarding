@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:uhk_onboarding/api.dart';
 import 'package:uhk_onboarding/main.dart';
 import 'package:uhk_onboarding/sign_up.dart';
 
@@ -100,12 +102,21 @@ class _SignInPageState extends State<SignInPage> {
                   ),
                 ),
                 CupertinoButton.filled(
-                  //TODO: Some pre-validation + API call
-                  onPressed: () => Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              const MyHomePage(title: 'User Overview'))),
+                  //TODO: Some pre-validation
+                  onPressed: () async {
+                    final response = await signIn(_usernameController.value.text.trim(),
+                        _passwordController.value.text.trim());
+                    if (response.statusCode == 200) {
+                      if(_rememberMe) {
+                        Hive.box('user').put('username', _usernameController.value.text.trim());
+                      }
+                      Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const MyHomePage(title: 'User Overview')));
+                    }
+                  },
                   child: const Text('Sign in'),
                 ),
               ],

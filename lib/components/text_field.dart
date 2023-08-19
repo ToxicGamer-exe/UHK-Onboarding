@@ -18,6 +18,9 @@ class CustomCupertinoTextField extends StatelessWidget {
     return CupertinoTextField(
       placeholder: placeholder,
       controller: controller,
+      obscureText: placeholder == 'Password',
+      enableSuggestions: placeholder != 'Password',
+
       prefix: Padding(
         padding: const EdgeInsets.only(left: 8.0),
         child: Icon(
