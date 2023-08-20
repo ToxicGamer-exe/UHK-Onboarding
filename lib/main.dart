@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
         future: isSignedIn(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: CupertinoActivityIndicator(color: Theme.of(context).colorScheme.primary));
           } else if (snapshot.hasError) {
             return Text('Error: ${snapshot.error}');
           } else {
@@ -86,8 +86,6 @@ class _MyHomePageState extends State<MyHomePage> {
     'ASSET': 0,
     'GHOST': 0,
   };
-
-  //TODO: Add some mock data and try to display the roles in the grid
 
   //Istg I've done everything to center the last item xD
   //I'm just too lazy to do it with builder instead of count

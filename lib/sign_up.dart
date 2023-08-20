@@ -53,28 +53,24 @@ class _SignUpPageState extends State<SignUpPage> {
               placeholder: 'First name',
               controller: _firstNameController,
               prefixIcon: CupertinoIcons.person_solid,
-              onClearPressed: () => _firstNameController.clear(),
             ),
             SizedBox(height: 15),
             CustomCupertinoTextField(
               placeholder: 'Last name',
               controller: _lastNameController,
               prefixIcon: CupertinoIcons.signature,
-              onClearPressed: () => _lastNameController.clear(),
             ),
             SizedBox(height: 15),
             CustomCupertinoTextField(
               placeholder: 'Username',
               controller: _usernameController,
               prefixIcon: CupertinoIcons.tag,//or globe, gotta decide
-              onClearPressed: () => _usernameController.clear(),
             ),
             SizedBox(height: 15),
             CustomCupertinoTextField(
               placeholder: 'Password',
               controller: _passwordController,
               prefixIcon: CupertinoIcons.lock,//or globe, gotta decide
-              onClearPressed: () => _passwordController.clear(),
             ),
             SizedBox(height: 20),
             CupertinoButton.filled(

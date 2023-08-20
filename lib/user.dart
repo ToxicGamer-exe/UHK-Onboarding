@@ -53,21 +53,18 @@ class _UserPageState extends State<UserPage> {
               placeholder: 'First name',
               controller: _firstNameController,
               prefixIcon: CupertinoIcons.person_solid,
-              onClearPressed: () => _firstNameController.clear(),
             ),
             SizedBox(height: 15),
             CustomCupertinoTextField(
               placeholder: 'Last name',
               controller: _lastNameController,
               prefixIcon: CupertinoIcons.signature,
-              onClearPressed: () => _lastNameController.clear(),
             ),
             SizedBox(height: 15),
             CustomCupertinoTextField(
               placeholder: 'Username',
               controller: _usernameController,
               prefixIcon: CupertinoIcons.tag,//or globe, gotta decide
-              onClearPressed: () => _usernameController.clear(),
             ),
             SizedBox(height: 15),
             CupertinoPicker.builder(

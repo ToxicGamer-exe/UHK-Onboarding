@@ -6,6 +6,7 @@ import 'package:uhk_onboarding/main.dart';
 import 'package:uhk_onboarding/sign_up.dart';
 
 import 'components/text_field.dart';
+import 'helpers.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
@@ -35,22 +36,7 @@ class _SignInPageState extends State<SignInPage> {
   bool _rememberMe = false;
   Map<String, String?> errors = {};
   bool _isLoading = false;
-
-  void validate() {
-    setState(() {
-      errors = {};
-    });
-    if (_usernameController.value.text.trim().isEmpty) {
-      setState(() {
-        errors['username'] = 'Username cannot be empty';
-      });
-    }
-    if (_passwordController.value.text.trim().isEmpty) {
-      setState(() {
-        errors['password'] = 'Password cannot be empty';
-      });
-    }
-  }
+  final _formKey = GlobalKey<FormState>();
 
   //So weird thing here actually, when theres some error from the server, the response is null xD
   //So I basically have no way of handling errors :))
@@ -88,103 +74,112 @@ class _SignInPageState extends State<SignInPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                CustomCupertinoTextField(
-                  placeholder: 'Username',
-                  controller: _usernameController,
-                  prefixIcon: CupertinoIcons.tag,
-                  //or globe, gotta decide
-                  onClearPressed: () => _usernameController.clear(),
-                  errorText: errors['username'],
-                ),
-                const SizedBox(height: 10),
-                CustomCupertinoTextField(
-                  placeholder: 'Password',
-                  controller: _passwordController,
-                  prefixIcon: CupertinoIcons.lock,
-                  //or globe, gotta decide
-                  onClearPressed: () => _passwordController.clear(),
-                  errorText: errors['password'],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Transform.scale(
-                      scale: 0.75,
-                      child: CupertinoSwitch(
-                        value: _rememberMe,
-                        onChanged: (newValue) {
-                          setState(() {
-                            _rememberMe = newValue;
-                          });
-                        },
-                      ),
-                    ),
-                    const DefaultTextStyle(
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: CupertinoColors.secondaryLabel,
-                      ),
-                      child: Text(
-                        'Remember Me',
-                      ),
-                    )
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CupertinoButton(
-                      onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const SignUpPage())),
-                      padding: const EdgeInsets.all(12.0),
-                      borderRadius: BorderRadius.circular(30.0),
-                      color: CupertinoColors.lightBackgroundGray,
-                      child: const Icon(
-                        CupertinoIcons.at_badge_plus,
-                        color: CupertinoColors.activeBlue,
-                        size: 24.0,
-                      ),
-                    ),
-                    CupertinoButton.filled(
-                      onPressed: () async {
-                        setState(() {
-                          _isLoading = true;
-                        });
-                        validate();
-                        if (errors.isEmpty) {
-                          final response = await signIn(
-                              _usernameController.value.text.trim(),
-                              _passwordController.value.text.trim());
-                          if (response.statusCode == 200) {
-                            if (_rememberMe) {
-                              //TODO: Encrypt something so you can't just sign in as someone else
-                              //TODO: Save access token? (rn its in .env)
-                              Hive.box('user').put('username',
-                                  _usernameController.value.text.trim());
-                            }
-                            Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => const MyHomePage(
-                                        title: 'User Overview')));
-                          } else {
-                            setState(() {
-                              errors['username'] = 'Wrong username or password';
-                              errors['password'] = 'Wrong username or password';
-                            });
-                            // handleResponseError(response);
-                          }
+                Form(
+                  key: _formKey,
+                  child: Column(children: [
+                    CustomCupertinoTextField(
+                      controller: _usernameController,
+                      placeholder: 'Username',
+                      prefixIcon: CupertinoIcons.tag,
+                      //or globe, gotta decide
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Username is required';
                         }
-                        setState(() {
-                          _isLoading = false;
-                        });
+                        return null;
                       },
-                      child: const Text('Sign in'),
                     ),
-                  ],
+                    const SizedBox(height: 10),
+                    CustomCupertinoTextField(
+                      key: const Key('password'),
+                      placeholder: 'Password',
+                      controller: _passwordController,
+                      prefixIcon: CupertinoIcons.lock,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Password is required';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Transform.scale(
+                          scale: 0.75,
+                          child: CupertinoSwitch(
+                            value: _rememberMe,
+                            onChanged: (newValue) {
+                              setState(() {
+                                _rememberMe = newValue;
+                              });
+                            },
+                          ),
+                        ),
+                        const DefaultTextStyle(
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: CupertinoColors.secondaryLabel,
+                          ),
+                          child: Text(
+                            'Remember Me',
+                          ),
+                        )
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        CupertinoButton(
+                          onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const SignUpPage())),
+                          padding: const EdgeInsets.all(12.0),
+                          borderRadius: BorderRadius.circular(30.0),
+                          color: CupertinoColors.lightBackgroundGray,
+                          child: const Icon(
+                            CupertinoIcons.at_badge_plus,
+                            color: CupertinoColors.activeBlue,
+                            size: 24.0,
+                          ),
+                        ),
+                        CupertinoButton.filled(
+                          onPressed: () async {
+                            setState(() {
+                              _isLoading = true;
+                            });
+                            if (_formKey.currentState!.validate()) {
+                              final response = await signIn(
+                                  _usernameController.value.text.trim(),
+                                  _passwordController.value.text.trim());
+                              if (response.statusCode == 200) {
+                                if (_rememberMe) {
+                                  //TODO: Encrypt something so you can't just sign in as someone else
+                                  //TODO: Save access token? (rn its in .env)
+                                  Hive.box('user').put('username',
+                                      _usernameController.value.text.trim());
+                                }
+                                Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => const MyHomePage(
+                                            title: 'User Overview')));
+                              } else {
+                                showCupertinoSnackBar(context: context, message: 'Username or password is incorrect');
+                                // handleResponseError(response);
+                              }
+                            }
+                            setState(() {
+                              _isLoading = false;
+                            });
+                          },
+                          child: const Text('Sign in'),
+                        ),
+                      ],
+                    ),
+                  ]),
                 ),
               ],
             ),
@@ -196,8 +191,8 @@ class _SignInPageState extends State<SignInPage> {
             child: ModalBarrier(dismissible: false, color: Colors.black),
           ),
         if (_isLoading)
-          const Center(
-            child: CircularProgressIndicator(),
+          Center(
+            child: CupertinoActivityIndicator(color: Theme.of(context).colorScheme.primary,),
           ),
       ],
     );
