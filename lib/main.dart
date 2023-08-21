@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uhk_onboarding/helpers.dart';
 import 'package:uhk_onboarding/sign_in.dart';
 import 'package:uhk_onboarding/user.dart';
+import 'components/contact_card.dart';
 import 'types.dart';
 import 'api.dart';
 
@@ -64,7 +65,9 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   List<User> users = [];
-  User? currentUser;
+  User? _currentUser;
+
+  get currentUser => _currentUser;
 
   @override
   void initState() {
@@ -76,8 +79,8 @@ class _MyHomePageState extends State<MyHomePage> {
     final List<User> fetchedUsers = await getUsers(limit: 1000);
     setState(() {
       users = fetchedUsers;
-      roleCounts = users.map((e) => e.role).fold({},
-          (Map<String, int> map, String role) {
+      roleCounts =
+          users.map((e) => e.role).fold({}, (Map<Role, int> map, Role role) {
         map[role] = (map[role] ?? 0) + 1;
         return map;
       });
@@ -86,21 +89,30 @@ class _MyHomePageState extends State<MyHomePage> {
     final username = Hive.box('user').get('username');
     if (username != null && username != '') {
       setState(() {
-        currentUser = fetchedUsers
+        _currentUser = fetchedUsers
             .firstWhereOrNull((element) => element.username == username);
       });
-      print(fetchedUsers.length);
-      print(username);
+    } else {
+      signOut();
     }
     // print("Fetched users: " + users.toString());
   }
 
-  Map<String, int> roleCounts = {
-    'ADMIN': 0,
-    'MANAGER': 0,
-    'TECHNICIAN': 0,
-    'ASSET': 0,
-    'GHOST': 0,
+  void signOut() {
+    Hive.box('user').delete('username');
+    Hive.box('user').delete('rememberMe');
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const SignInPage()),
+    );
+  }
+
+  Map<Role, int> roleCounts = {
+    Role.admin: 0,
+    Role.manager: 0,
+    Role.technician: 0,
+    Role.asset: 0,
+    Role.ghost: 0,
   };
 
   //Istg I've done everything to center the last item xD
@@ -126,7 +138,7 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               Text(roleCounts.values.elementAt(i).toString(),
                   style: const TextStyle(fontSize: 30)),
-              Text(roleCounts.keys.elementAt(i)),
+              Text(roleCounts.keys.elementAt(i).name.toUpperCase()),
             ],
           ),
         ),
@@ -146,21 +158,15 @@ class _MyHomePageState extends State<MyHomePage> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => UserPage(user: currentUser, isEditable: true)),
+                  builder: (context) =>
+                      UserPage(user: _currentUser, isEditable: true, isAdmin: _currentUser?.role == Role.admin)),
             );
           },
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () async {
-              final box = await Hive.openBox('user');
-              box.delete('username');
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const SignInPage()),
-              );
-            },
+            onPressed: signOut,
           ),
         ],
       ),
@@ -184,63 +190,76 @@ class _MyHomePageState extends State<MyHomePage> {
           // Column(
           //   children: [
           for (User user in users)
-            Card(
-              margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 25),
-              elevation: 2, // No shadow on the card to match iOS style
-              child: InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => UserPage(user: user, isEditable: currentUser?.role == Role.admin.name.toUpperCase() || user == currentUser,)),
-                  );
-                },
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 60,
-                        height: 60,
-                        child: CircleAvatar(
-                            radius: 20,
-                            child: Text(user.firstName[0] + user.lastName[0])),
-                      ),
-                      const SizedBox(width: 20),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('${user.firstName} ${user.lastName}',
-                                style: const TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 4),
-                            Text(user.role,
-                                style: const TextStyle(
-                                    fontSize: 16, color: Colors.grey)),
+            ContactCard(
+              user: user,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => UserPage(
+                            user: user,
+                            isEditable: user == _currentUser,
+                            isAdmin: _currentUser?.role == Role.admin,
+                          )),
+                );
+              },
+              trailingIcon: _currentUser?.role == Role.admin &&
+                      user !=
+                          _currentUser //It would work even without the second cond (it would just sign him out)
+                  ? Icons.delete
+                  : null,
+              onTrailingIconTap: () async {
+                showCupertinoModalPopup<void>(
+                    context: context,
+                    builder: (BuildContext context) => CupertinoAlertDialog(
+                          title: const Text('Delete user'),
+                          content: const Text(
+                              'Are you sure you want to delete the user? This action cannot be undone!'),
+                          actions: <CupertinoDialogAction>[
+                            CupertinoDialogAction(
+                              isDefaultAction: true,
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('No'),
+                            ),
+                            CupertinoDialogAction(
+                              isDestructiveAction: true,
+                              onPressed: () async {
+                                final response = await deleteUser(user.id);
+                                if (response.statusCode == 200) {
+                                  showCupertinoSnackBar(
+                                      context: context,
+                                      message: 'User deleted');
+                                  loadData();
+                                } else {
+                                  showCupertinoSnackBar(
+                                      context: context,
+                                      message: 'Error deleting user');
+                                  // handleResponseError(response);
+                                }
+                                Navigator.pop(context);
+                              },
+                              child: const Text('Yes'),
+                            ),
                           ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+                        ));
+              },
             ),
         ],
       ),
 
-      floatingActionButton: currentUser?.role == Role.admin.name.toUpperCase() ? FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const UserPage()),
-          );
-        },
-        tooltip: 'add',
-        shape: const CircleBorder(),
-        child: const Icon(Icons.add),
-      ) : null,
+      floatingActionButton: _currentUser?.role == Role.admin
+          ? FloatingActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const UserPage(isAdmin: true)),
+                );
+              },
+              tooltip: 'add',
+              shape: const CircleBorder(),
+              child: const Icon(Icons.add),
+            )
+          : null,
       // floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }

@@ -6,8 +6,7 @@ class User {
   final String lastName;
   final String username;
   final String password;
-  // final Role role;
-  final String role;
+  final Role role;
 
   User(this.id, this.firstName, this.lastName, this.username, this.password, this.role);
 
@@ -18,12 +17,9 @@ class User {
       json['lastName'] as String,
       json['username'] as String,
       json['password'] ?? '',
-      (json['role'] as String).toUpperCase(), // Convert string to Role enum
+      Role.values.firstWhere((element) => element.name.toLowerCase() == json['role'].toString().toLowerCase()),
     );
   }
-
-  // User(this.id, this.name, this.surname, this.password, this.username,
-  //     this.role);
 }
 
 enum Role { admin, manager, technician, asset, ghost }

@@ -4,10 +4,11 @@ import 'package:uhk_onboarding/types.dart';
 import 'components/text_field.dart';
 
 class UserPage extends StatefulWidget {
-  const UserPage({this.user, this.isEditable = false, super.key});
+  const UserPage({this.user, this.isAdmin = false, this.isEditable = false, super.key});
 
   final User? user;
   final bool isEditable;
+  final bool isAdmin;
 
   @override
   _UserPageState createState() => _UserPageState();
@@ -18,7 +19,6 @@ class _UserPageState extends State<UserPage> {
   late TextEditingController _lastNameController;
   late TextEditingController _usernameController;
   late TextEditingController _passwordController;
-  late TextEditingController _roleController;
 
   get user => widget.user;
 
@@ -29,7 +29,6 @@ class _UserPageState extends State<UserPage> {
     _lastNameController = TextEditingController(text: user?.lastName);
     _usernameController = TextEditingController(text: user?.username);
     _passwordController = TextEditingController(text: user?.password);
-    _roleController = TextEditingController(text: user?.role);
   }
 
   @override
@@ -38,7 +37,6 @@ class _UserPageState extends State<UserPage> {
     _lastNameController.dispose();
     _usernameController.dispose();
     _passwordController.dispose();
-    _roleController.dispose();
     super.dispose();
   }
 
@@ -57,21 +55,21 @@ class _UserPageState extends State<UserPage> {
               placeholder: 'First name',
               controller: _firstNameController,
               prefixIcon: CupertinoIcons.person_solid,
-              enabled: widget.isEditable,
+              enabled: widget.isEditable || widget.isAdmin,
             ),
             CustomCupertinoTextField(
               placeholder: 'Last name',
               controller: _lastNameController,
               prefixIcon: CupertinoIcons.signature,
-              enabled: widget.isEditable,
+              enabled: widget.isEditable || widget.isAdmin,
             ),
             CustomCupertinoTextField(
               placeholder: 'Username',
               controller: _usernameController,
               prefixIcon: CupertinoIcons.tag, //or globe, gotta decide
-              enabled: widget.isEditable,
+              enabled: widget.isEditable || widget.isAdmin,
             ),
-            if(widget.isEditable)
+            if(widget.isEditable || widget.isAdmin)
               CustomCupertinoTextField(
                 placeholder: 'Password',
                 controller: _passwordController,
@@ -81,18 +79,12 @@ class _UserPageState extends State<UserPage> {
               itemExtent: 50,
               scrollController: FixedExtentScrollController(
                   initialItem: Role.values.indexWhere((element) =>
-                  element
-                      .name == user?.role)),
+                  element == (user?.role ?? Role.ghost))),
               onSelectedItemChanged: null,
-              childCount: widget.isEditable ? Role.values.length : 1,
+              childCount: widget.isAdmin ? Role.values.length : 1,
               useMagnifier: true,
               itemBuilder: (context, index) {
-                if (!widget.isEditable) {
-                  return Center(child: Text(user.role.toUpperCase(),
-                      style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold)));
-                }
-                final role = Role.values[index];
+                final role = widget.isAdmin ? Role.values[index] : user?.role as Role;
                 return Center(
                   child: Text(
                     role.name.toUpperCase(),
