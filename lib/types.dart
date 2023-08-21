@@ -4,12 +4,12 @@ class User {
   final int id;
   final String firstName;
   final String lastName;
-  // final String password;
   final String username;
+  final String password;
   // final Role role;
   final String role;
 
-  User(this.id, this.firstName, this.lastName, this.username, this.role);
+  User(this.id, this.firstName, this.lastName, this.username, this.password, this.role);
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
@@ -17,6 +17,7 @@ class User {
       json['firstName'] as String,
       json['lastName'] as String,
       json['username'] as String,
+      json['password'] ?? '',
       (json['role'] as String).toUpperCase(), // Convert string to Role enum
     );
   }

@@ -4,7 +4,6 @@ class CustomCupertinoTextField extends FormField<String> {
   final TextEditingController controller;
   final String placeholder;
   final IconData prefixIcon;
-  String errorText = '';
 
   get value => controller.value.text;
 
@@ -13,9 +12,12 @@ class CustomCupertinoTextField extends FormField<String> {
     required this.controller,
     required this.placeholder,
     required this.prefixIcon,
-    this.errorText = '',
+    String errorText = '',
+    bool enabled = true,
+    EdgeInsets padding = const EdgeInsets.only(bottom: 15),
     FormFieldValidator? validator,
   }) : super(
+          enabled: enabled,
           initialValue: controller.text,
           validator: validator,
           builder: (state) {
@@ -23,6 +25,7 @@ class CustomCupertinoTextField extends FormField<String> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CupertinoTextField(
+                  enabled: enabled,
                   placeholder: placeholder,
                   controller: controller,
                   obscureText: placeholder == 'Password',
@@ -55,7 +58,7 @@ class CustomCupertinoTextField extends FormField<String> {
                       size: 20,
                     ),
                   ),
-                  suffixMode: OverlayVisibilityMode.editing,
+                  suffixMode: enabled ? OverlayVisibilityMode.editing : OverlayVisibilityMode.never,
                 ),
                 if (state.hasError)
                   Padding(
@@ -68,6 +71,7 @@ class CustomCupertinoTextField extends FormField<String> {
                       child: Text(state.errorText!),
                     ),
                   ),
+                Padding(padding: padding)
               ],
             );
           },

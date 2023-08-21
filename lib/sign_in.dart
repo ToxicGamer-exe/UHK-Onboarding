@@ -82,6 +82,7 @@ class _SignInPageState extends State<SignInPage> {
                       placeholder: 'Username',
                       prefixIcon: CupertinoIcons.tag,
                       //or globe, gotta decide
+                      padding: const EdgeInsets.only(bottom: 10.0),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Username is required';
@@ -89,12 +90,12 @@ class _SignInPageState extends State<SignInPage> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 10),
                     CustomCupertinoTextField(
                       key: const Key('password'),
                       placeholder: 'Password',
                       controller: _passwordController,
                       prefixIcon: CupertinoIcons.lock,
+                      padding: const EdgeInsets.only(bottom: 10.0),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Password is required';
@@ -102,7 +103,6 @@ class _SignInPageState extends State<SignInPage> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 10),
                     Row(
                       children: [
                         Transform.scale(
@@ -127,7 +127,7 @@ class _SignInPageState extends State<SignInPage> {
                         )
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 5),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -158,9 +158,10 @@ class _SignInPageState extends State<SignInPage> {
                                 if (_rememberMe) {
                                   //TODO: Encrypt something so you can't just sign in as someone else
                                   //TODO: Save access token? (rn its in .env)
+                                  Hive.box('user').put('rememberMe', DateTime.now().toString());
+                                }
                                   Hive.box('user').put('username',
                                       _usernameController.value.text.trim());
-                                }
                                 Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:uhk_onboarding/helpers.dart';
 import 'package:uhk_onboarding/sign_in.dart';
 import 'package:uhk_onboarding/user.dart';
 import 'types.dart';
@@ -29,11 +30,15 @@ class MyApp extends StatelessWidget {
         future: isSignedIn(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CupertinoActivityIndicator(color: Theme.of(context).colorScheme.primary));
+            return Center(
+                child: CupertinoActivityIndicator(
+                    color: Theme.of(context).colorScheme.primary));
           } else if (snapshot.hasError) {
             return Text('Error: ${snapshot.error}');
           } else {
-            return (snapshot.data ?? false) ? const MyHomePage(title: 'User Overview') : const SignInPage();
+            return (snapshot.data ?? false)
+                ? const MyHomePage(title: 'User Overview')
+                : const SignInPage();
           }
         },
       ),
@@ -42,7 +47,9 @@ class MyApp extends StatelessWidget {
 
   Future<bool> isSignedIn() async {
     final box = await Hive.openBox('user');
-    return box.containsKey('username');
+    return box.containsKey('rememberMe') &&
+        box.get('rememberMe') != null &&
+        DateTime.parse(box.get('rememberMe')).isAfter(DateTime.now());
   }
 }
 
@@ -57,17 +64,16 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   List<User> users = [];
+  User? currentUser;
 
   @override
   void initState() {
     super.initState();
     loadData();
-    print("users: " + users.toString());
   }
 
   void loadData() async {
-    final List<User> fetchedUsers = await getUsers();
-    print(fetchedUsers);
+    final List<User> fetchedUsers = await getUsers(limit: 1000);
     setState(() {
       users = fetchedUsers;
       roleCounts = users.map((e) => e.role).fold({},
@@ -76,6 +82,16 @@ class _MyHomePageState extends State<MyHomePage> {
         return map;
       });
     });
+    Future.delayed(const Duration(milliseconds: 5000));
+    final username = Hive.box('user').get('username');
+    if (username != null && username != '') {
+      setState(() {
+        currentUser = fetchedUsers
+            .firstWhereOrNull((element) => element.username == username);
+      });
+      print(fetchedUsers.length);
+      print(username);
+    }
     // print("Fetched users: " + users.toString());
   }
 
@@ -125,16 +141,28 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.logout),
-          onPressed: () async {
-            final box = await Hive.openBox('user');
-            box.delete('username');
-            Navigator.pushReplacement(
+          icon: const Icon(CupertinoIcons.person_crop_circle),
+          onPressed: () {
+            Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const SignInPage()),
+              MaterialPageRoute(
+                  builder: (context) => UserPage(user: currentUser, isEditable: true)),
             );
           },
-        )
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              final box = await Hive.openBox('user');
+              box.delete('username');
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const SignInPage()),
+              );
+            },
+          ),
+        ],
       ),
       body: ListView(
         children: <Widget>[
@@ -164,7 +192,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => UserPage(user: user)),
+                        builder: (context) => UserPage(user: user, isEditable: currentUser?.role == Role.admin.name.toUpperCase() || user == currentUser,)),
                   );
                 },
                 child: Container(
@@ -201,7 +229,8 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
+
+      floatingActionButton: currentUser?.role == Role.admin.name.toUpperCase() ? FloatingActionButton(
         onPressed: () {
           Navigator.push(
             context,
@@ -211,7 +240,7 @@ class _MyHomePageState extends State<MyHomePage> {
         tooltip: 'add',
         shape: const CircleBorder(),
         child: const Icon(Icons.add),
-      ),
+      ) : null,
       // floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }

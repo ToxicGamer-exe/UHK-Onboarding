@@ -14,10 +14,10 @@ final dio = Dio(BaseOptions(
     }));
 
 FutureOr<List<User>> getUsers({int limit = 50}) async {
-  final response = await dio.get('/users?limit=$limit');
+  final response = await dio.get('/users', queryParameters: {'limit': limit});
   // .then((value) => value.data['data'].map<User>((e) => User.fromJson(e)).toList());
   // print("Response: " + response.data['payload'].toString());
-  return response.data['payload'].map<User>((e) => User.fromJson(e)).toList();
+  return response.data['payload'].map<User>((e) => User.fromJson(e)).toList(); //Futures.wait()?
   // return response.data['payload'] as List<User>;
 }
 
