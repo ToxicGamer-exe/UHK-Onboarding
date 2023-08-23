@@ -34,6 +34,7 @@ Future<Response> signIn(String username, String password) async {
   } catch (e) {
     print(e);
   }
+
   return response;
 }
 
@@ -52,6 +53,21 @@ Future<Response> signUp(User user) async {
   return response;
 }
 
+Future<Response> createUser(User user) async {
+  print("Creating user with: " + user.toString());
+  Response response = Response(requestOptions: RequestOptions());
+
+  try {
+    response = await dio.post('/users', data: user.toJson());
+  } catch (e) {
+    print(e);
+  }
+
+  print(response);
+  return response;
+}
+
+
 Future<Response> updateUser(User user) async {
   print("Updating user with: " + user.toString());
   Response response = Response(requestOptions: RequestOptions());
@@ -61,12 +77,12 @@ Future<Response> updateUser(User user) async {
   } catch (e) {
     print(e);
   }
+
   print(response);
   return response;
 }
 
 Future<Response> deleteUser(int id) async {
-  print("Deleting user with id: " + id.toString());
   Response response = Response(requestOptions: RequestOptions());
 
   try {
@@ -74,6 +90,6 @@ Future<Response> deleteUser(int id) async {
   } catch (e) {
     print(e);
   }
-  print(response);
+
   return response;
 }
