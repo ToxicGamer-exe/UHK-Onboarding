@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:uhk_onboarding/helpers.dart';
 import 'package:uhk_onboarding/sign_in.dart';
 import 'package:uhk_onboarding/user.dart';
@@ -27,7 +28,7 @@ class MyApp extends StatelessWidget {
             seedColor: Colors.deepPurple, background: const Color(0xFFDEDCDC)),
         useMaterial3: true,
       ),
-      home: FutureBuilder<bool>(
+      home: FutureBuilder<String?>(
         future: isSignedIn(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -37,20 +38,24 @@ class MyApp extends StatelessWidget {
           } else if (snapshot.hasError) {
             return Text('Error: ${snapshot.error}');
           } else {
-            return (snapshot.data ?? false)
+            return (snapshot.data == null)
                 ? const MyHomePage(title: 'User Overview')
-                : const SignInPage();
+                : SignInPage(customMessage: snapshot.data);
           }
         },
       ),
     );
   }
 
-  Future<bool> isSignedIn() async {
+  Future<String?> isSignedIn() async {
     final box = await Hive.openBox('user');
-    return box.containsKey('rememberMe') &&
-        box.get('rememberMe') != null &&
-        DateTime.parse(box.get('rememberMe')).isAfter(DateTime.now());
+    if (box.containsKey('rememberMe') && box.get('rememberMe') != null) {
+      if (DateTime.parse(box.get('rememberMe')).isAfter(DateTime.now())) {
+        return null;
+      }
+      return 'Your login has expired. Please sign in again.';
+    }
+    return 'Please sign in or sign up.';
   }
 }
 
@@ -67,7 +72,12 @@ class _MyHomePageState extends State<MyHomePage> {
   List<User> users = [];
   User? _currentUser;
 
-  get currentUser => _currentUser;
+  @override
+  void setState(fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
 
   @override
   void initState() {
@@ -85,26 +95,17 @@ class _MyHomePageState extends State<MyHomePage> {
         return map;
       });
     });
-    Future.delayed(const Duration(milliseconds: 5000));
-    final username = Hive.box('user').get('username');
-    if (username != null && username != '') {
+    final token = Hive.box('user').get('accessToken');
+    final user = JwtDecoder.decode(token)['user'];
+    if (User.isValid(user)) {
       setState(() {
-        _currentUser = fetchedUsers
-            .firstWhereOrNull((element) => element.username == username);
+        _currentUser = fetchedUsers.firstWhereOrNull(
+            (element) => element.username == user['username']);
       });
     } else {
-      signOut();
+      signOut(context, 'Uh oh! Something went wrong... Please sign in again.');
     }
     // print("Fetched users: " + users.toString());
-  }
-
-  void signOut() {
-    Hive.box('user').delete('username');
-    Hive.box('user').delete('rememberMe');
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const SignInPage()),
-    );
   }
 
   Map<Role, int> roleCounts = {
@@ -158,15 +159,17 @@ class _MyHomePageState extends State<MyHomePage> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) =>
-                      UserPage(user: _currentUser, isEditable: true, isAdmin: _currentUser?.role == Role.admin)),
+                  builder: (context) => UserPage(
+                      user: _currentUser,
+                      isEditable: true,
+                      isAdmin: _currentUser?.role == Role.admin)),
             );
           },
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: signOut,
+            onPressed: () => signOut(context, 'You have been signed out.'),
           ),
         ],
       ),
@@ -252,7 +255,8 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const UserPage(isAdmin: true)),
+                  MaterialPageRoute(
+                      builder: (context) => const UserPage(isAdmin: true)),
                 );
               },
               tooltip: 'add',

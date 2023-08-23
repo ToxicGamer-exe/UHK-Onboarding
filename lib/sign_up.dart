@@ -72,7 +72,7 @@ class _SignUpPageState extends State<SignUpPage> {
             SizedBox(height: 5),
             CupertinoButton.filled(
               onPressed: () {
-                //TODO: Some pre-validation + API call
+                //TODO: Some pre-validation + API call (Mby reroute and sign in?)
               },
               child: Text('Sign up'),
             ),

@@ -28,7 +28,7 @@ class _UserPageState extends State<UserPage> {
     _firstNameController = TextEditingController(text: user?.firstName);
     _lastNameController = TextEditingController(text: user?.lastName);
     _usernameController = TextEditingController(text: user?.username);
-    _passwordController = TextEditingController(text: user?.password);
+    _passwordController = TextEditingController();
   }
 
   @override

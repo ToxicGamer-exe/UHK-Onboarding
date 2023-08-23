@@ -9,7 +9,9 @@ import 'components/text_field.dart';
 import 'helpers.dart';
 
 class SignInPage extends StatefulWidget {
-  const SignInPage({super.key});
+  final String? customMessage;
+
+  const SignInPage({super.key, this.customMessage});
 
   @override
   _SignInPageState createState() => _SignInPageState();
@@ -24,6 +26,12 @@ class _SignInPageState extends State<SignInPage> {
     super.initState();
     _usernameController = TextEditingController();
     _passwordController = TextEditingController();
+    if (widget.customMessage != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showCupertinoSnackBar(
+            context: context, message: widget.customMessage!);
+      });
+    }
   }
 
   @override
@@ -103,6 +111,7 @@ class _SignInPageState extends State<SignInPage> {
                         return null;
                       },
                     ),
+
                     Row(
                       children: [
                         Transform.scale(
@@ -156,19 +165,19 @@ class _SignInPageState extends State<SignInPage> {
                                   _passwordController.value.text.trim());
                               if (response.statusCode == 200) {
                                 if (_rememberMe) {
-                                  //TODO: Encrypt something so you can't just sign in as someone else
-                                  //TODO: Save access token? (rn its in .env)
-                                  Hive.box('user').put('rememberMe', DateTime.now().toString());
+                                  Hive.box('user').put(
+                                      'rememberMe', DateTime.now().add(const Duration(days: 7)).toString());
                                 }
-                                  Hive.box('user').put('username',
-                                      _usernameController.value.text.trim());
                                 Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) => const MyHomePage(
                                             title: 'User Overview')));
                               } else {
-                                showCupertinoSnackBar(context: context, message: 'Username or password is incorrect');
+                                showCupertinoSnackBar(
+                                    context: context,
+                                    message:
+                                        'Username or password is incorrect');
                                 // handleResponseError(response);
                               }
                             }
@@ -193,7 +202,9 @@ class _SignInPageState extends State<SignInPage> {
           ),
         if (_isLoading)
           Center(
-            child: CupertinoActivityIndicator(color: Theme.of(context).colorScheme.primary,),
+            child: CupertinoActivityIndicator(
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
       ],
     );

@@ -3,9 +3,10 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:hive/hive.dart';
 import 'package:uhk_onboarding/types.dart';
 
-String? key;
+String? key = Hive.box('user').get('accessToken');
 
 final dio = Dio(BaseOptions(
     baseUrl: dotenv.maybeGet('API_URL') ?? '',
@@ -31,6 +32,7 @@ Future<Response> signIn(String username, String password) async {
     response = await dio.post('/auth/signin',
         data: json.encode({'username': username, 'password': password}));
     key = response.data['payload']['accessToken'];
+    Hive.box('user').put('accessToken', key);
     dio.options.headers = {"Authorization": "Bearer $key"};
   } catch (e) {
     print(e);

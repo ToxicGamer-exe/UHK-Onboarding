@@ -5,10 +5,10 @@ class User {
   final String firstName;
   final String lastName;
   final String username;
-  final String password;
+  // final String password;
   final Role role;
 
-  User(this.id, this.firstName, this.lastName, this.username, this.password, this.role);
+  User(this.id, this.firstName, this.lastName, this.username, this.role);
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
@@ -16,9 +16,16 @@ class User {
       json['firstName'] as String,
       json['lastName'] as String,
       json['username'] as String,
-      json['password'] ?? '',
+      // json['password'] ?? '',
       Role.values.firstWhere((element) => element.name.toLowerCase() == json['role'].toString().toLowerCase()),
     );
+  }
+
+  static bool isValid(Map<String, dynamic> json) {
+    return json.containsKey('firstname') &&
+        json.containsKey('lastname') &&
+        json.containsKey('username') &&
+        json.containsKey('role');
   }
 }
 
