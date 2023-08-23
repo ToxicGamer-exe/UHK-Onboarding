@@ -18,14 +18,10 @@ final dio = Dio(BaseOptions(
 
 FutureOr<List<User>> getUsers({int limit = 50}) async {
   final response = await dio.get('/users', queryParameters: {'limit': limit});
-  // .then((value) => value.data['data'].map<User>((e) => User.fromJson(e)).toList());
-  // print("Response: " + response.data['payload'].toString());
   return response.data['payload'].map<User>((e) => User.fromJson(e)).toList(); //Futures.wait()?
-  // return response.data['payload'] as List<User>;
 }
 
 Future<Response> signIn(String username, String password) async {
-  print("Signing in with: " + username + " " + password);
   Response response = Response(requestOptions: RequestOptions());
 
   try {
@@ -37,20 +33,21 @@ Future<Response> signIn(String username, String password) async {
   } catch (e) {
     print(e);
   }
-  print(response);
   return response;
 }
 
 Future<Response> signUp(User user) async {
-  print("Signing up with: " + user.toString());
   Response response = Response(requestOptions: RequestOptions());
 
   try {
-    response = await dio.post('/auth/signup', data: json.encode(user));
+    response = await dio.post('/auth/signup', data: user.toJson());
   } catch (e) {
     print(e);
   }
-  print(response);
+  if(response.statusCode == 200) {
+    return await signIn(user.username, user.password!);
+  }
+
   return response;
 }
 
@@ -59,7 +56,7 @@ Future<Response> updateUser(User user) async {
   Response response = Response(requestOptions: RequestOptions());
 
   try {
-    response = await dio.put('/users/${user.id}', data: json.encode(user));
+    response = await dio.put('/users/${user.id}', data: user.toJson());
   } catch (e) {
     print(e);
   }

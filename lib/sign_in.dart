@@ -4,6 +4,7 @@ import 'package:hive/hive.dart';
 import 'package:uhk_onboarding/api.dart';
 import 'package:uhk_onboarding/main.dart';
 import 'package:uhk_onboarding/sign_up.dart';
+import 'package:uhk_onboarding/types.dart';
 
 import 'components/text_field.dart';
 import 'helpers.dart';
@@ -42,7 +43,6 @@ class _SignInPageState extends State<SignInPage> {
   }
 
   bool _rememberMe = false;
-  Map<String, String?> errors = {};
   bool _isLoading = false;
   final _formKey = GlobalKey<FormState>();
 
@@ -76,6 +76,7 @@ class _SignInPageState extends State<SignInPage> {
         CupertinoPageScaffold(
           navigationBar: const CupertinoNavigationBar(
             middle: Text('Sign in'),
+
           ),
           child: Padding(
             padding: const EdgeInsets.all(20.0),
@@ -86,30 +87,19 @@ class _SignInPageState extends State<SignInPage> {
                   key: _formKey,
                   child: Column(children: [
                     CustomCupertinoTextField(
-                      controller: _usernameController,
                       placeholder: 'Username',
+                      controller: _usernameController,
                       prefixIcon: CupertinoIcons.tag,
                       //or globe, gotta decide
                       padding: const EdgeInsets.only(bottom: 10.0),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Username is required';
-                        }
-                        return null;
-                      },
+                      validator: (value) => User.validateUsername(value),
                     ),
                     CustomCupertinoTextField(
-                      key: const Key('password'),
                       placeholder: 'Password',
                       controller: _passwordController,
                       prefixIcon: CupertinoIcons.lock,
                       padding: const EdgeInsets.only(bottom: 10.0),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Password is required';
-                        }
-                        return null;
-                      },
+                      validator: (value) => User.validatePassword(value),
                     ),
 
                     Row(

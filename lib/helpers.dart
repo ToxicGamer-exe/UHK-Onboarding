@@ -65,11 +65,11 @@ extension IterableX<T> on Iterable<T> {
 void signOut(BuildContext context, [String? message]) {
   Hive.box('user').delete('accessToken');
   Hive.box('user').delete('rememberMe');
-  Navigator.pushReplacement(
-    context,
-    MaterialPageRoute(
-        builder: (context) => SignInPage(
-              customMessage: message,
-            )),
-  );
+  Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+          builder: (context) => SignInPage(
+                customMessage: message,
+              )),
+      (Route<dynamic> route) => false);
 }

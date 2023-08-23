@@ -227,7 +227,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             CupertinoDialogAction(
                               isDestructiveAction: true,
                               onPressed: () async {
-                                final response = await deleteUser(user.id);
+                                final response = await deleteUser(user.id!);
                                 if (response.statusCode == 200) {
                                   showCupertinoSnackBar(
                                       context: context,
