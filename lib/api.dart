@@ -12,6 +12,7 @@ final dio = Dio(BaseOptions(
     baseUrl: dotenv.maybeGet('API_URL') ?? '',
     contentType: 'application/json',
     responseType: ResponseType.json,
+    validateStatus: (status) => status! < 500,
     headers: {
       "Authorization": "Bearer $key",
     }));

@@ -104,10 +104,10 @@ class _SignUpPageState extends State<SignUpPage> {
                                     builder: (context) => const MyHomePage(
                                         title: 'User Overview')));
                           } else {
+                            String message = response.data['message']?.elementAt(0) ?? 'Something went wrong';
                             showCupertinoSnackBar(
                                 context: context,
-                                message:
-                                    'Something went wrong, please try again later.');
+                                message: 'Error: ${message.capitalize()}');
                             // handleResponseError(response);
                           }
                         }
@@ -115,7 +115,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           _isLoading = false;
                         });
                       },
-                      child: const Text('Sign in'),
+                      child: const Text('Sign up'),
                     ),
                   ],
                 ),

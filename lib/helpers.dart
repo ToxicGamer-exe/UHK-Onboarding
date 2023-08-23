@@ -16,29 +16,35 @@ void showCupertinoSnackBar({
   }
 
   final overlayEntry = OverlayEntry(
-    builder: (context) => Positioned(
-      bottom: 8.0,
-      left: 8.0,
-      right: 8.0,
-      child: CupertinoPopupSurface(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 8.0,
-            vertical: 8.0,
-          ),
-          child: DefaultTextStyle(
-            style: const TextStyle(
-              fontSize: 14.0,
-              color: CupertinoColors.secondaryLabel,
+    builder: (context) {
+      final mediaQuery = MediaQuery.of(context);
+      final snackBarTopMargin =
+          mediaQuery.viewInsets.bottom + mediaQuery.padding.top + 8.0;
+
+      return Positioned(
+        top: snackBarTopMargin,
+        left: 8.0,
+        right: 8.0,
+        child: CupertinoPopupSurface(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 8.0,
+              vertical: 8.0,
             ),
-            child: Text(
-              message,
-              textAlign: TextAlign.center,
+            child: DefaultTextStyle(
+              style: const TextStyle(
+                fontSize: 14.0,
+                color: CupertinoColors.secondaryLabel,
+              ),
+              child: Text(
+                message,
+                textAlign: TextAlign.center,
+              ),
             ),
           ),
         ),
-      ),
-    ),
+      );
+    },
   );
 
   overlay.insert(overlayEntry);
@@ -62,6 +68,12 @@ extension IterableX<T> on Iterable<T> {
   }
 }
 
+extension StringX on String {
+  String capitalize() {
+    return '${this[0].toUpperCase()}${substring(1)}';
+  }
+}
+
 void signOut(BuildContext context, [String? message]) {
   Hive.box('user').delete('accessToken');
   Hive.box('user').delete('rememberMe');
@@ -72,4 +84,21 @@ void signOut(BuildContext context, [String? message]) {
                 customMessage: message,
               )),
       (Route<dynamic> route) => false);
+}
+
+String handleResponseErrorCode(int? code) {
+  switch (code) {
+    case 400:
+      return 'Please fill in all the fields correctly';
+    case 401:
+      return 'Check your inputs and try again';
+    case 403:
+      return 'You are not authorized to access this resource';
+    case 404:
+      return 'Resource not found';
+    case 500:
+      return 'Something went wrong on the server';
+    default:
+      return 'Something went wrong';
+  }
 }

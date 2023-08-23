@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -29,8 +30,7 @@ class _SignInPageState extends State<SignInPage> {
     _passwordController = TextEditingController();
     if (widget.customMessage != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        showCupertinoSnackBar(
-            context: context, message: widget.customMessage!);
+        showCupertinoSnackBar(context: context, message: widget.customMessage!);
       });
     }
   }
@@ -46,28 +46,16 @@ class _SignInPageState extends State<SignInPage> {
   bool _isLoading = false;
   final _formKey = GlobalKey<FormState>();
 
-  //So weird thing here actually, when theres some error from the server, the response is null xD
-  //So I basically have no way of handling errors :))
-
-  // void handleResponseError(Response response) {
-  //   //handle if username or password is wrong or not found
-  //   print(response);
-  //   print(response.statusMessage);
-  //   if (response.statusMessage == 'Bad bad request.') {
-  //     setState(() {
-  //       errors['username'] = 'Username not found';
-  //     });
-  //   } else if (response.statusCode == 401) {
-  //     setState(() {
-  //       errors['password'] = 'Password is incorrect';
-  //     });
-  //   } else {
-  //     setState(() {
-  //       errors['username'] = 'Something went wrong';
-  //       errors['password'] = 'Something went wrong';
-  //     });
-  //   }
-  // }
+  String handleResponseError(Response response) {
+    switch (response.data['meta']['code']) {
+      case 'api.error.bad_request':
+        return 'Username not found';
+      case 'api.error.authorization.wrong_credentials':
+        return 'Wrong password';
+      default:
+        return 'Something went wrong';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +64,6 @@ class _SignInPageState extends State<SignInPage> {
         CupertinoPageScaffold(
           navigationBar: const CupertinoNavigationBar(
             middle: Text('Sign in'),
-
           ),
           child: Padding(
             padding: const EdgeInsets.all(20.0),
@@ -101,7 +88,6 @@ class _SignInPageState extends State<SignInPage> {
                       padding: const EdgeInsets.only(bottom: 10.0),
                       validator: (value) => User.validatePassword(value),
                     ),
-
                     Row(
                       children: [
                         Transform.scale(
@@ -156,7 +142,10 @@ class _SignInPageState extends State<SignInPage> {
                               if (response.statusCode == 200) {
                                 if (_rememberMe) {
                                   Hive.box('user').put(
-                                      'rememberMe', DateTime.now().add(const Duration(days: 7)).toString());
+                                      'rememberMe',
+                                      DateTime.now()
+                                          .add(const Duration(days: 7))
+                                          .toString());
                                 }
                                 Navigator.pushReplacement(
                                     context,
@@ -164,11 +153,9 @@ class _SignInPageState extends State<SignInPage> {
                                         builder: (context) => const MyHomePage(
                                             title: 'User Overview')));
                               } else {
+                                String message = handleResponseError(response);
                                 showCupertinoSnackBar(
-                                    context: context,
-                                    message:
-                                        'Username or password is incorrect');
-                                // handleResponseError(response);
+                                    context: context, message: 'Error: ${message.capitalize()}');
                               }
                             }
                             setState(() {
