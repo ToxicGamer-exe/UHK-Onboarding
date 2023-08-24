@@ -59,6 +59,48 @@ void showCupertinoSnackBar({
   );
 }
 
+Future<dynamic> showCupertinoPasswordConfirm(BuildContext context,
+    TextEditingController _passwordController) {
+  showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+            title: const Text('Confirm password'),
+            content: const Text('Please re-enter password to continue.'),
+            actions: [
+              // Padding(
+              //     padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              //     child:
+              Column(
+                children: [
+                  Padding(
+                    padding:
+                        const EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
+                    child: CupertinoTextField(
+                      placeholder: 'Password',
+                      controller: _passwordController,
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CupertinoButton(
+                        child: const Text('Cancel'),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      CupertinoButton(
+                        child: const Text('Create'),
+                        onPressed: () => Navigator.pop(context, true),
+                      ),
+                    ],
+                  )
+                ],
+                // )
+              ),
+            ],
+          ));
+  return Future.value(false);
+}
+
 extension IterableX<T> on Iterable<T> {
   T? firstWhereOrNull(bool Function(T element) test) {
     for (var element in this) {

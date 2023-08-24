@@ -151,7 +151,7 @@ class _UserPageState extends State<UserPage> {
                         if (_formKey.currentState?.validate() ?? false) {
                           if (_selectedRole == Role.admin) {
                             final adminConsent = await _showAdminAlert();
-                              if (adminConsent == null || !adminConsent) return;
+                            if (adminConsent == null || !adminConsent) return;
                           }
                           if (user == null) {
                             final response = await createUser(User(
