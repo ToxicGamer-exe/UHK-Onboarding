@@ -155,8 +155,8 @@ class _MyHomePageState extends State<MyHomePage> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(CupertinoIcons.person_crop_circle),
-          onPressed: () {
-            Navigator.push(
+          onPressed: () async {
+            final result = await Navigator.push(
               context,
               MaterialPageRoute(
                   builder: (context) => UserPage(
@@ -164,6 +164,10 @@ class _MyHomePageState extends State<MyHomePage> {
                       isEditable: true,
                       isAdmin: _currentUser?.role == Role.admin)),
             );
+            if (result != null) {
+              loadData();
+              showCupertinoSnackBar(context: context, message: "Your profile has been successfully updated.");
+            }
           },
         ),
         actions: [
@@ -195,8 +199,8 @@ class _MyHomePageState extends State<MyHomePage> {
           for (User user in users)
             ContactCard(
               user: user,
-              onTap: () {
-                Navigator.push(
+              onTap: () async {
+                final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) => UserPage(
@@ -205,6 +209,15 @@ class _MyHomePageState extends State<MyHomePage> {
                             isAdmin: _currentUser?.role == Role.admin,
                           )),
                 );
+                if (result != null) {
+                  loadData();
+                  final username = result is User
+                      ? result.username
+                      : result is Map<String, dynamic>
+                      ? result['username']
+                      : 'User';
+                  showCupertinoSnackBar(context: context, message: '$username was successfully updated.');
+                }
               },
               trailingIcon: _currentUser?.role == Role.admin &&
                       user !=
@@ -252,12 +265,21 @@ class _MyHomePageState extends State<MyHomePage> {
 
       floatingActionButton: _currentUser?.role == Role.admin
           ? FloatingActionButton(
-              onPressed: () {
-                Navigator.push(
+              onPressed: () async {
+                final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) => const UserPage(isAdmin: true)),
                 );
+                if (result != null) {
+                  loadData();
+                  final username = result is User
+                      ? result.username
+                      : result is Map<String, dynamic>
+                          ? result['username']
+                          : 'User';
+                  showCupertinoSnackBar(context: context, message: '$username was successfully created.');
+                }
               },
               tooltip: 'add',
               shape: const CircleBorder(),
