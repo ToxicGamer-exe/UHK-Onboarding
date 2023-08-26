@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:uhk_onboarding/api.dart';
@@ -21,7 +22,7 @@ class UserPage extends StatefulWidget {
 class _UserPageState extends State<UserPage> {
   final _formKey = GlobalKey<FormState>();
 
-  get user => widget.user;
+  User? get user => widget.user;
 
   late TextEditingController _firstNameController;
   late TextEditingController _lastNameController;
@@ -67,6 +68,13 @@ class _UserPageState extends State<UserPage> {
         ],
       ),
     );
+  }
+
+  void showError(Response response) {
+    // print(response.data?['error']?['detail']);
+    String message = response.data['error']['detail'] ?? 'Something went wrong';
+    showCupertinoSnackBar(
+        context: context, message: 'Error: ${message.capitalize()}');
   }
 
   @override
@@ -154,16 +162,23 @@ class _UserPageState extends State<UserPage> {
                             user?.role != Role.admin) {
                           final adminConsent = await _showAdminAlert();
                           if (adminConsent == null || !adminConsent) return;
+                        } //TODO: Warn/prevent user from demoting themselves
+
+                        showLoadingOverlay(context);
+
+                        User newUser = User(
+                          id: user?.id,
+                          firstName: _firstNameController.text.trim(),
+                          lastName: _lastNameController.text.trim(),
+                          username: _usernameController.text.trim(),
+                          role: _selectedRole!,
+                        );
+                        if (_passwordController.text.trim() != '') {
+                          newUser.password = _passwordController.text.trim();
                         }
 
                         if (user == null) {
-                          final response = await createUser(User(
-                            firstName: _firstNameController.text.trim(),
-                            lastName: _lastNameController.text.trim(),
-                            username: _usernameController.text.trim(),
-                            password: _passwordController.text.trim(),
-                            role: _selectedRole!,
-                          ));
+                          final response = await createUser(newUser);
                           if (response.statusCode == 200 ||
                               response.statusCode == 201) {
                             Navigator.pop(context, response.data['payload']);
@@ -174,45 +189,30 @@ class _UserPageState extends State<UserPage> {
                             //             user: User.fromJson(response.data['payload']),
                             //             isAdmin: true)));
                           } else {
-                            print(response.data['error']['detail']);
-                            String message = response.data['error']['detail'] ??
-                                'Something went wrong';
-                            showCupertinoSnackBar(
-                                context: context,
-                                message: 'Error: ${message.capitalize()}');
-                            // handleResponseError(response);
+                            showError(response);
                           }
                         } else {
-                          showLoadingOverlay(context);
-                          await Future.delayed(const Duration(seconds: 1));
-                          hideLoadingOverlay(context);
-                          return;
-                          final response = await updateUser(User(
-                            firstName: _firstNameController.text.trim(),
-                            lastName: _lastNameController.text.trim(),
-                            username: _usernameController.text.trim(),
-                            password: _passwordController.text.trim(),
-                            role: _selectedRole!,
-                          ));
-                          if (response.statusCode == 200 ||
-                              response.statusCode == 201) {
-                            Navigator.pop(context, response.data['payload']);
-                            // Navigator.pushReplacement(
-                            //     context,
-                            //     MaterialPageRoute(
-                            //         builder: (context) => UserPage(
-                            //             user: User.fromJson(response.data['payload']),
-                            //             isAdmin: true)));
-                          } else {
-                            print(response.data['error']['detail']);
-                            String message = response.data['error']['detail'] ??
-                                'Something went wrong';
-                            showCupertinoSnackBar(
-                                context: context,
-                                message: 'Error: ${message.capitalize()}');
-                            // handleResponseError(response);
+                          if (user != newUser) {
+                            final response = await updateUser(newUser);
+                            if (response.statusCode == 200 ||
+                                response.statusCode == 201) {
+                              Navigator.pop(context, response.data['payload']);
+                            } else {
+                              showError(response);
+                            }
+                          }
+                          if (user!.role != _selectedRole) {
+                            final response =
+                                await updateRole(newUser.id!, _selectedRole!);
+                            if (response.statusCode == 200 ||
+                                response.statusCode == 201) {
+                              Navigator.pop(context, response.data['payload']);
+                            } else {
+                              showError(response);
+                            }
                           }
                         }
+                        hideLoadingOverlay(context);
                       },
                       child: Text('Save'),
                     ),

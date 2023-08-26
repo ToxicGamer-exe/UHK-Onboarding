@@ -44,6 +44,7 @@ dependencies:
   enough_platform_widgets: ^0.7.2
   jwt_decoder: ^2.0.1
   flutter_spinkit: ^5.2.0
+  equatable: ^2.0.5
 
 dev_dependencies:
   flutter_test:

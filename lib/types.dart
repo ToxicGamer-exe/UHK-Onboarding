@@ -1,12 +1,16 @@
 //make a user schema
 
-class User {
+import 'package:equatable/equatable.dart';
+
+class User extends Equatable {
   final int? id;
   final String firstName;
   final String lastName;
   final String username;
-  final String? password;
+  String? password;
   final Role role;
+
+  List<Object?> get props => [id, firstName, lastName, username, password];
 
   User(
       {this.id,
@@ -33,9 +37,12 @@ class User {
       'firstName': firstName,
       'lastName': lastName,
       'username': username,
-      'password': password,
       'role': role.name.toLowerCase(),
     };
+
+    if(password != null) {
+      json['password'] = password;
+    }
 
     if(includeId) {
       json['id'] = id;

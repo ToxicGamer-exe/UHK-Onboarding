@@ -23,7 +23,7 @@ FutureOr<List<User>> getUsers({int limit = 50}) async {
 }
 
 Future<Response> signIn(String username, String password) async {
-  Response response = Response(requestOptions: RequestOptions());
+  late Response response;
 
   try {
     response = await dio.post('/auth/signin',
@@ -39,7 +39,7 @@ Future<Response> signIn(String username, String password) async {
 }
 
 Future<Response> signUp(User user) async {
-  Response response = Response(requestOptions: RequestOptions());
+  late Response response;
 
   try {
     response = await dio.post('/auth/signup', data: user.toJson());
@@ -55,7 +55,7 @@ Future<Response> signUp(User user) async {
 
 Future<Response> createUser(User user) async {
   print("Creating user with: " + user.toString());
-  Response response = Response(requestOptions: RequestOptions());
+  late Response response;
 
   try {
     response = await dio.post('/users', data: user.toJson());
@@ -69,11 +69,23 @@ Future<Response> createUser(User user) async {
 
 
 Future<Response> updateUser(User user) async {
-  print("Updating user with: " + user.toString());
-  Response response = Response(requestOptions: RequestOptions());
+  late Response response;
 
   try {
     response = await dio.put('/users/${user.id}', data: user.toJson());
+  } catch (e) {
+    print(e);
+  }
+
+  return response;
+}
+
+Future<Response> updateRole(int id, Role role) async {
+  print("Updating user with: " + role.toString());
+  late Response response;
+
+  try {
+    response = await dio.put('/users/$id/role', data: {'role': role.name.toLowerCase()});
   } catch (e) {
     print(e);
   }
@@ -83,7 +95,7 @@ Future<Response> updateUser(User user) async {
 }
 
 Future<Response> deleteUser(int id) async {
-  Response response = Response(requestOptions: RequestOptions());
+  late Response response;
 
   try {
     response = await dio.delete('/users/$id');
