@@ -43,6 +43,7 @@ dependencies:
   flutter_dotenv: ^5.1.0
   enough_platform_widgets: ^0.7.2
   jwt_decoder: ^2.0.1
+  flutter_spinkit: ^5.2.0
 
 dev_dependencies:
   flutter_test:

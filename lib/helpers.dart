@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:hive/hive.dart';
 import 'package:uhk_onboarding/sign_in.dart';
 
@@ -59,8 +60,8 @@ void showCupertinoSnackBar({
   );
 }
 
-Future<dynamic> showCupertinoPasswordConfirm(BuildContext context,
-    TextEditingController _passwordController) {
+Future<dynamic> showCupertinoPasswordConfirm(
+    BuildContext context, TextEditingController _passwordController) {
   showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
@@ -99,6 +100,46 @@ Future<dynamic> showCupertinoPasswordConfirm(BuildContext context,
             ],
           ));
   return Future.value(false);
+}
+
+OverlayEntry _loadingOverlayEntry = OverlayEntry(builder: (context) {
+  return Stack(
+    children: [
+      const Opacity(
+        opacity: 0.8,
+        child: ModalBarrier(dismissible: false, color: Colors.black),
+      ),
+      Center(
+        child: SpinKitSpinningLines(
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      ),
+    ],
+  );
+});
+
+get loadingOverlayEntry => _loadingOverlayEntry;
+
+void showLoadingOverlay(BuildContext context) {
+  final overlay = Overlay.of(context);
+
+  if (!overlay.mounted) {
+    print("No overlay found");
+    return;
+  }
+
+  overlay.insert(_loadingOverlayEntry);
+}
+
+void hideLoadingOverlay(BuildContext context) {
+  final overlay = Overlay.of(context);
+
+  if (!overlay.mounted) {
+    print("No overlay found");
+    return;
+  }
+
+  _loadingOverlayEntry.remove();
 }
 
 extension IterableX<T> on Iterable<T> {

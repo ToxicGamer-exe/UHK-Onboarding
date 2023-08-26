@@ -43,7 +43,6 @@ class _SignInPageState extends State<SignInPage> {
   }
 
   bool _rememberMe = false;
-  bool _isLoading = false;
   final _formKey = GlobalKey<FormState>();
 
   String handleResponseError(Response response) {
@@ -59,131 +58,115 @@ class _SignInPageState extends State<SignInPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        CupertinoPageScaffold(
-          navigationBar: const CupertinoNavigationBar(
-            middle: Text('Sign in'),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Form(
-                  key: _formKey,
-                  child: Column(children: [
-                    CustomCupertinoTextField(
-                      placeholder: 'Username',
-                      controller: _usernameController,
-                      prefixIcon: CupertinoIcons.tag,
-                      //or globe, gotta decide
-                      padding: const EdgeInsets.only(bottom: 10.0),
-                      validator: (value) => User.validateUsername(value),
+    return CupertinoPageScaffold(
+      navigationBar: const CupertinoNavigationBar(
+        middle: Text('Sign in'),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Form(
+              key: _formKey,
+              child: Column(children: [
+                CustomCupertinoTextField(
+                  placeholder: 'Username',
+                  controller: _usernameController,
+                  prefixIcon: CupertinoIcons.tag,
+                  //or globe, gotta decide
+                  padding: const EdgeInsets.only(bottom: 10.0),
+                  validator: (value) => User.validateUsername(value),
+                ),
+                CustomCupertinoTextField(
+                  placeholder: 'Password',
+                  controller: _passwordController,
+                  prefixIcon: CupertinoIcons.lock,
+                  padding: const EdgeInsets.only(bottom: 10.0),
+                  validator: (value) => User.validatePassword(value),
+                ),
+                Row(
+                  children: [
+                    Transform.scale(
+                      scale: 0.75,
+                      child: CupertinoSwitch(
+                        value: _rememberMe,
+                        onChanged: (newValue) {
+                          setState(() {
+                            _rememberMe = newValue;
+                          });
+                        },
+                      ),
                     ),
-                    CustomCupertinoTextField(
-                      placeholder: 'Password',
-                      controller: _passwordController,
-                      prefixIcon: CupertinoIcons.lock,
-                      padding: const EdgeInsets.only(bottom: 10.0),
-                      validator: (value) => User.validatePassword(value),
+                    const DefaultTextStyle(
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: CupertinoColors.secondaryLabel,
+                      ),
+                      child: Text(
+                        'Remember Me',
+                      ),
+                    )
+                  ],
+                ),
+                const SizedBox(height: 5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CupertinoButton(
+                      onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const SignUpPage())),
+                      padding: const EdgeInsets.all(12.0),
+                      borderRadius: BorderRadius.circular(30.0),
+                      color: CupertinoColors.lightBackgroundGray,
+                      child: const Icon(
+                        CupertinoIcons.at_badge_plus,
+                        color: CupertinoColors.activeBlue,
+                        size: 24.0,
+                      ),
                     ),
-                    Row(
-                      children: [
-                        Transform.scale(
-                          scale: 0.75,
-                          child: CupertinoSwitch(
-                            value: _rememberMe,
-                            onChanged: (newValue) {
-                              setState(() {
-                                _rememberMe = newValue;
-                              });
-                            },
-                          ),
-                        ),
-                        const DefaultTextStyle(
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: CupertinoColors.secondaryLabel,
-                          ),
-                          child: Text(
-                            'Remember Me',
-                          ),
-                        )
-                      ],
-                    ),
-                    const SizedBox(height: 5),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        CupertinoButton(
-                          onPressed: () => Navigator.push(
+                    CupertinoButton.filled(
+                      onPressed: () async {
+                        if (!_formKey.currentState!.validate()) return;
+
+                        showLoadingOverlay(context);
+
+                        final response = await signIn(
+                            _usernameController.value.text.trim(),
+                            _passwordController.value.text.trim());
+                        if (response.statusCode == 200) {
+                          if (_rememberMe) {
+                            Hive.box('user').put(
+                                'rememberMe',
+                                DateTime.now()
+                                    .add(const Duration(days: 7))
+                                    .toString());
+                          }
+                          Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const SignUpPage())),
-                          padding: const EdgeInsets.all(12.0),
-                          borderRadius: BorderRadius.circular(30.0),
-                          color: CupertinoColors.lightBackgroundGray,
-                          child: const Icon(
-                            CupertinoIcons.at_badge_plus,
-                            color: CupertinoColors.activeBlue,
-                            size: 24.0,
-                          ),
-                        ),
-                        CupertinoButton.filled(
-                          onPressed: () async {
-                            setState(() {
-                              _isLoading = true;
-                            });
-                            if (_formKey.currentState!.validate()) {
-                              final response = await signIn(
-                                  _usernameController.value.text.trim(),
-                                  _passwordController.value.text.trim());
-                              if (response.statusCode == 200) {
-                                if (_rememberMe) {
-                                  Hive.box('user').put(
-                                      'rememberMe',
-                                      DateTime.now()
-                                          .add(const Duration(days: 7))
-                                          .toString());
-                                }
-                                Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => const MyHomePage(
-                                            title: 'User Overview')));
-                              } else {
-                                String message = handleResponseError(response);
-                                showCupertinoSnackBar(
-                                    context: context, message: 'Error: ${message.capitalize()}');
-                              }
-                            }
-                            setState(() {
-                              _isLoading = false;
-                            });
-                          },
-                          child: const Text('Sign in'),
-                        ),
-                      ],
+                                  builder: (context) => const MyHomePage(
+                                      title: 'User Overview')));
+                        } else {
+                          String message = handleResponseError(response);
+                          showCupertinoSnackBar(
+                              context: context,
+                              message: 'Error: ${message.capitalize()}');
+                        }
+
+                        hideLoadingOverlay(context);
+                      },
+                      child: const Text('Sign in'),
                     ),
-                  ]),
+                  ],
                 ),
-              ],
+              ]),
             ),
-          ),
+          ],
         ),
-        if (_isLoading)
-          const Opacity(
-            opacity: 0.8,
-            child: ModalBarrier(dismissible: false, color: Colors.black),
-          ),
-        if (_isLoading)
-          Center(
-            child: CupertinoActivityIndicator(
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-      ],
+      ),
     );
   }
 }

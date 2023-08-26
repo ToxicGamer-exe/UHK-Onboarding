@@ -148,39 +148,70 @@ class _UserPageState extends State<UserPage> {
                   if (widget.isEditable || widget.isAdmin)
                     CupertinoButton.filled(
                       onPressed: () async {
-                        if (_formKey.currentState?.validate() ?? false) {
-                          if (_selectedRole == Role.admin) {
-                            final adminConsent = await _showAdminAlert();
-                            if (adminConsent == null || !adminConsent) return;
+                        if (!_formKey.currentState!.validate()) return;
+
+                        if (_selectedRole == Role.admin &&
+                            user?.role != Role.admin) {
+                          final adminConsent = await _showAdminAlert();
+                          if (adminConsent == null || !adminConsent) return;
+                        }
+
+                        if (user == null) {
+                          final response = await createUser(User(
+                            firstName: _firstNameController.text.trim(),
+                            lastName: _lastNameController.text.trim(),
+                            username: _usernameController.text.trim(),
+                            password: _passwordController.text.trim(),
+                            role: _selectedRole!,
+                          ));
+                          if (response.statusCode == 200 ||
+                              response.statusCode == 201) {
+                            Navigator.pop(context, response.data['payload']);
+                            // Navigator.pushReplacement(
+                            //     context,
+                            //     MaterialPageRoute(
+                            //         builder: (context) => UserPage(
+                            //             user: User.fromJson(response.data['payload']),
+                            //             isAdmin: true)));
+                          } else {
+                            print(response.data['error']['detail']);
+                            String message = response.data['error']['detail'] ??
+                                'Something went wrong';
+                            showCupertinoSnackBar(
+                                context: context,
+                                message: 'Error: ${message.capitalize()}');
+                            // handleResponseError(response);
                           }
-                          if (user == null) {
-                            final response = await createUser(User(
-                              firstName: _firstNameController.text.trim(),
-                              lastName: _lastNameController.text.trim(),
-                              username: _usernameController.text.trim(),
-                              password: _passwordController.text.trim(),
-                              role: _selectedRole!,
-                            ));
-                            if (response.statusCode == 200 ||
-                                response.statusCode == 201) {
-                              Navigator.pop(context, response.data['payload']);
-                              // Navigator.pushReplacement(
-                              //     context,
-                              //     MaterialPageRoute(
-                              //         builder: (context) => UserPage(
-                              //             user: User.fromJson(response.data['payload']),
-                              //             isAdmin: true)));
-                            } else {
-                              print(response.data['error']['detail']);
-                              String message = response.data['error']
-                                      ['detail'] ??
-                                  'Something went wrong';
-                              showCupertinoSnackBar(
-                                  context: context,
-                                  message: 'Error: ${message.capitalize()}');
-                              // handleResponseError(response);
-                            }
-                          } else {}
+                        } else {
+                          showLoadingOverlay(context);
+                          await Future.delayed(const Duration(seconds: 1));
+                          hideLoadingOverlay(context);
+                          return;
+                          final response = await updateUser(User(
+                            firstName: _firstNameController.text.trim(),
+                            lastName: _lastNameController.text.trim(),
+                            username: _usernameController.text.trim(),
+                            password: _passwordController.text.trim(),
+                            role: _selectedRole!,
+                          ));
+                          if (response.statusCode == 200 ||
+                              response.statusCode == 201) {
+                            Navigator.pop(context, response.data['payload']);
+                            // Navigator.pushReplacement(
+                            //     context,
+                            //     MaterialPageRoute(
+                            //         builder: (context) => UserPage(
+                            //             user: User.fromJson(response.data['payload']),
+                            //             isAdmin: true)));
+                          } else {
+                            print(response.data['error']['detail']);
+                            String message = response.data['error']['detail'] ??
+                                'Something went wrong';
+                            showCupertinoSnackBar(
+                                context: context,
+                                message: 'Error: ${message.capitalize()}');
+                            // handleResponseError(response);
+                          }
                         }
                       },
                       child: Text('Save'),

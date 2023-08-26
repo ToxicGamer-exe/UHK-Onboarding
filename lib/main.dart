@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:uhk_onboarding/helpers.dart';
@@ -33,7 +34,7 @@ class MyApp extends StatelessWidget {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
-                child: CupertinoActivityIndicator(
+                child: SpinKitSpinningLines(
                     color: Theme.of(context).colorScheme.primary));
           } else if (snapshot.hasError) {
             return Text('Error: ${snapshot.error}');
@@ -166,7 +167,9 @@ class _MyHomePageState extends State<MyHomePage> {
             );
             if (result != null) {
               loadData();
-              showCupertinoSnackBar(context: context, message: "Your profile has been successfully updated.");
+              showCupertinoSnackBar(
+                  context: context,
+                  message: "Your profile has been successfully updated.");
             }
           },
         ),
@@ -214,9 +217,11 @@ class _MyHomePageState extends State<MyHomePage> {
                   final username = result is User
                       ? result.username
                       : result is Map<String, dynamic>
-                      ? result['username']
-                      : 'User';
-                  showCupertinoSnackBar(context: context, message: '$username was successfully updated.');
+                          ? result['username']
+                          : 'User';
+                  showCupertinoSnackBar(
+                      context: context,
+                      message: '$username was successfully updated.');
                 }
               },
               trailingIcon: _currentUser?.role == Role.admin &&
@@ -278,7 +283,9 @@ class _MyHomePageState extends State<MyHomePage> {
                       : result is Map<String, dynamic>
                           ? result['username']
                           : 'User';
-                  showCupertinoSnackBar(context: context, message: '$username was successfully created.');
+                  showCupertinoSnackBar(
+                      context: context,
+                      message: '$username was successfully created.');
                 }
               },
               tooltip: 'add',
