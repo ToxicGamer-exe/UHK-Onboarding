@@ -85,31 +85,31 @@ class _SignUpPageState extends State<SignUpPage> {
                       SizedBox(height: 5),
                       CupertinoButton.filled(
                         onPressed: () async {
+                          if (!_formKey.currentState!.validate()) return;
+
                           setState(() {
                             _isLoading = true;
                           });
-                          if (_formKey.currentState!.validate()) {
-                            final response = await signUp(User(
-                              firstName: _firstNameController.text.trim(),
-                              lastName: _lastNameController.text.trim(),
-                              username: _usernameController.text.trim(),
-                              password: _passwordController.text.trim(),
-                            ));
-                            if (response.statusCode == 200) {
-                              Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => const MyHomePage(
-                                          title: 'User Overview')));
-                            } else {
-                              String message =
-                                  response.data['message']?.elementAt(0) ??
-                                      'Something went wrong';
-                              showCupertinoSnackBar(
-                                  context: context,
-                                  message: 'Error: ${message.capitalize()}');
-                              // handleResponseError(response);
-                            }
+                          final response = await signUp(User(
+                            firstName: _firstNameController.text.trim(),
+                            lastName: _lastNameController.text.trim(),
+                            username: _usernameController.text.trim(),
+                            password: _passwordController.text.trim(),
+                          ));
+                          if (response.statusCode == 200) {
+                            Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const MyHomePage(
+                                        title: 'User Overview')));
+                          } else {
+                            String message =
+                                response.data['message']?.elementAt(0) ??
+                                    'Something went wrong';
+                            showCupertinoSnackBar(
+                                context: context,
+                                message: 'Error: ${message.capitalize()}');
+                            // handleResponseError(response);
                           }
                           setState(() {
                             _isLoading = false;
