@@ -7,6 +7,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:uhk_onboarding/helpers.dart';
 import 'package:uhk_onboarding/sign_in.dart';
 import 'package:uhk_onboarding/user.dart';
+import 'components/animated_sync.dart';
 import 'components/contact_card.dart';
 import 'types.dart';
 import 'api.dart';
@@ -35,7 +36,10 @@ class MyApp extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
                 child: SpinKitSpinningLines(
-                    color: Theme.of(context).colorScheme.primary));
+                    color: Theme
+                        .of(context)
+                        .colorScheme
+                        .primary));
           } else if (snapshot.hasError) {
             return Text('Error: ${snapshot.error}');
           } else {
@@ -69,9 +73,15 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage>
+    with SingleTickerProviderStateMixin {
   List<User> users = [];
   User? _currentUser;
+
+  late AnimationController controller;
+
+  // Animation colorAnimation;
+  late Animation<double> rotateAnimation;
 
   @override
   void setState(fn) {
@@ -84,29 +94,32 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     loadData();
+    controller =
+        AnimationController(vsync: this, duration: const Duration(seconds: 200));
+    rotateAnimation = Tween<double>(begin: 0.0, end: 360.0).animate(controller);
   }
 
-  void loadData() async {
+  Future<bool> loadData() async {
     final List<User> fetchedUsers = await getUsers(limit: 1000);
     setState(() {
       users = fetchedUsers;
       roleCounts =
           users.map((e) => e.role).fold({}, (Map<Role, int> map, Role role) {
-        map[role] = (map[role] ?? 0) + 1;
-        return map;
-      });
+            map[role] = (map[role] ?? 0) + 1;
+            return map;
+          });
     });
     final token = Hive.box('user').get('accessToken');
     final user = JwtDecoder.decode(token)['user'];
     if (User.isValid(user)) {
       setState(() {
         _currentUser = fetchedUsers.firstWhereOrNull(
-            (element) => element.username == user['username']);
+                (element) => element.username == user['username']);
       });
     } else {
       signOut(context, 'Uh oh! Something went wrong... Please sign in again.');
     }
-    // print("Fetched users: " + users.toString());
+    return true;
   }
 
   Map<Role, int> roleCounts = {
@@ -119,39 +132,50 @@ class _MyHomePageState extends State<MyHomePage> {
 
   //Istg I've done everything to center the last item xD
   //I'm just too lazy to do it with builder instead of count
-  List<Widget> _buildGridTileList() => List.generate(
+  List<Widget> _buildGridTileList() =>
+      List.generate(
         roleCounts.length,
-        (i) => FilledButton(
-          onPressed: null,
-          style: ButtonStyle(
-            backgroundColor:
+            (i) =>
+            FilledButton(
+              onPressed: null,
+              style: ButtonStyle(
+                backgroundColor:
                 MaterialStateProperty.all<Color>(Colors.deepPurple),
-            foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
-            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-              RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-                side: const BorderSide(color: Colors.deepPurple),
+                foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    side: const BorderSide(color: Colors.deepPurple),
+                  ),
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(roleCounts.values.elementAt(i).toString(),
+                      style: const TextStyle(fontSize: 30)),
+                  Text(roleCounts.keys
+                      .elementAt(i)
+                      .name
+                      .toUpperCase()),
+                ],
               ),
             ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(roleCounts.values.elementAt(i).toString(),
-                  style: const TextStyle(fontSize: 30)),
-              Text(roleCounts.keys.elementAt(i).name.toUpperCase()),
-            ],
-          ),
-        ),
       );
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme
+          .of(context)
+          .colorScheme
+          .background,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: Theme
+            .of(context)
+            .colorScheme
+            .inversePrimary,
         title: Text(widget.title),
         centerTitle: true,
         leading: IconButton(
@@ -160,10 +184,11 @@ class _MyHomePageState extends State<MyHomePage> {
             final result = await Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => UserPage(
-                      user: _currentUser,
-                      isEditable: true,
-                      isAdmin: _currentUser?.role == Role.admin)),
+                  builder: (context) =>
+                      UserPage(
+                          user: _currentUser,
+                          isEditable: true,
+                          isAdmin: _currentUser?.role == Role.admin)),
             );
             if (result != null) {
               loadData();
@@ -174,6 +199,15 @@ class _MyHomePageState extends State<MyHomePage> {
           },
         ),
         actions: [
+          AnimatedSync(
+            animation: rotateAnimation,
+            callback: () async {
+              controller.forward();
+              await loadData();
+              controller.stop();
+              controller.reset();
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => signOut(context, 'You have been signed out.'),
@@ -206,7 +240,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => UserPage(
+                      builder: (context) =>
+                          UserPage(
                             user: user,
                             isEditable: user == _currentUser,
                             isAdmin: _currentUser?.role == Role.admin,
@@ -217,22 +252,23 @@ class _MyHomePageState extends State<MyHomePage> {
                   final username = result is User
                       ? result.username
                       : result is Map<String, dynamic>
-                          ? result['username']
-                          : 'User';
+                      ? result['username']
+                      : 'User';
                   showCupertinoSnackBar(
                       context: context,
                       message: '$username was successfully updated.');
                 }
               },
               trailingIcon: _currentUser?.role == Role.admin &&
-                      user !=
-                          _currentUser //It would work even without the second cond (it would just sign him out)
+                  user !=
+                      _currentUser //It would work even without the second cond (it would just sign him out)
                   ? Icons.delete
                   : null,
               onTrailingIconTap: () async {
                 showCupertinoModalPopup<void>(
                     context: context,
-                    builder: (BuildContext context) => CupertinoAlertDialog(
+                    builder: (BuildContext context) =>
+                        CupertinoAlertDialog(
                           title: const Text('Delete user'),
                           content: const Text(
                               'Are you sure you want to delete the user? This action cannot be undone!'),
@@ -270,28 +306,28 @@ class _MyHomePageState extends State<MyHomePage> {
 
       floatingActionButton: _currentUser?.role == Role.admin
           ? FloatingActionButton(
-              onPressed: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const UserPage(isAdmin: true)),
-                );
-                if (result != null) {
-                  loadData();
-                  final username = result is User
-                      ? result.username
-                      : result is Map<String, dynamic>
-                          ? result['username']
-                          : 'User';
-                  showCupertinoSnackBar(
-                      context: context,
-                      message: '$username was successfully created.');
-                }
-              },
-              tooltip: 'add',
-              shape: const CircleBorder(),
-              child: const Icon(Icons.add),
-            )
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => const UserPage(isAdmin: true)),
+          );
+          if (result != null) {
+            loadData();
+            final username = result is User
+                ? result.username
+                : result is Map<String, dynamic>
+                ? result['username']
+                : 'User';
+            showCupertinoSnackBar(
+                context: context,
+                message: '$username was successfully created.');
+          }
+        },
+        tooltip: 'add',
+        shape: const CircleBorder(),
+        child: const Icon(Icons.add),
+      )
           : null,
       // floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
