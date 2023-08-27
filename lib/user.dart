@@ -71,7 +71,6 @@ class _UserPageState extends State<UserPage> {
   }
 
   void showError(Response response) {
-    // print(response.data?['error']?['detail']);
     String message = response.data['error']['detail'] ?? 'Something went wrong';
     showCupertinoSnackBar(
         context: context, message: 'Error: ${message.capitalize()}');

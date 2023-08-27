@@ -54,7 +54,6 @@ Future<Response> signUp(User user) async {
 }
 
 Future<Response> createUser(User user) async {
-  print("Creating user with: " + user.toString());
   late Response response;
 
   try {
@@ -63,7 +62,6 @@ Future<Response> createUser(User user) async {
     print(e);
   }
 
-  print(response);
   return response;
 }
 
@@ -81,7 +79,6 @@ Future<Response> updateUser(User user) async {
 }
 
 Future<Response> updateRole(int id, Role role) async {
-  print("Updating user with: " + role.toString());
   late Response response;
 
   try {
@@ -90,7 +87,6 @@ Future<Response> updateRole(int id, Role role) async {
     print(e);
   }
 
-  print(response);
   return response;
 }
 
