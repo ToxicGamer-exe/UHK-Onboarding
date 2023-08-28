@@ -21,6 +21,7 @@ class _SignUpPageState extends State<SignUpPage> {
   late TextEditingController _lastNameController;
   late TextEditingController _usernameController;
   late TextEditingController _passwordController;
+  late TextEditingController _passwordConfirmController;
 
   @override
   void initState() {
@@ -29,6 +30,10 @@ class _SignUpPageState extends State<SignUpPage> {
     _lastNameController = TextEditingController();
     _usernameController = TextEditingController();
     _passwordController = TextEditingController();
+    _passwordConfirmController = TextEditingController();
+    _passwordController.addListener(() {
+      setState(() {});
+    });
   }
 
   @override
@@ -37,6 +42,7 @@ class _SignUpPageState extends State<SignUpPage> {
     _lastNameController.dispose();
     _usernameController.dispose();
     _passwordController.dispose();
+    _passwordConfirmController.dispose();
     super.dispose();
   }
 
@@ -79,6 +85,17 @@ class _SignUpPageState extends State<SignUpPage> {
                     prefixIcon: CupertinoIcons.lock,
                     validator: (value) => User.validatePassword(value),
                   ),
+                  if(_passwordController.text.isNotEmpty)
+                  CustomCupertinoTextField(
+                      placeholder: 'Password confirm',
+                      controller: _passwordConfirmController,
+                      prefixIcon: CupertinoIcons.lock_rotation,
+                      validator: (value) {
+                        if (value != _passwordController.text) {
+                          return 'Passwords do not match';
+                        }
+                        return null;
+                      }),
                   SizedBox(height: 5),
                   CupertinoButton.filled(
                     onPressed: () async {

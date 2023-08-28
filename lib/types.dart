@@ -59,28 +59,28 @@ class User extends Equatable {
   }
 
   static String? validateFirstName(String? firstName) {
-    if (firstName == null || firstName.isEmpty) {
+    if (firstName == null || firstName.trim().isEmpty) {
       return 'Username is required';
     }
     return null;
   }
 
   static String? validateLastName(String? lastName) {
-    if (lastName == null || lastName.isEmpty) {
+    if (lastName == null || lastName.trim().isEmpty) {
       return 'Username is required';
     }
     return null;
   }
 
   static String? validateUsername(String? username) {
-    if (username == null || username.isEmpty) {
+    if (username == null || username.trim().isEmpty) {
       return 'Username is required';
     }
     return null;
   }
 
   static String? validatePassword(String? password) {
-    if (password == null || password.isEmpty) {
+    if (password == null || password.trim().isEmpty) {
       return 'Password is required';
     }
     return null;

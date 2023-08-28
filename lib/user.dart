@@ -28,6 +28,7 @@ class _UserPageState extends State<UserPage> {
   late TextEditingController _lastNameController;
   late TextEditingController _usernameController;
   late TextEditingController _passwordController;
+  late TextEditingController _passwordConfirmController;
   Role? _selectedRole;
 
   @override
@@ -37,6 +38,10 @@ class _UserPageState extends State<UserPage> {
     _lastNameController = TextEditingController(text: user?.lastName);
     _usernameController = TextEditingController(text: user?.username);
     _passwordController = TextEditingController();
+    _passwordConfirmController = TextEditingController();
+    _passwordController.addListener(() {
+      setState(() {});
+    });
     _selectedRole = user?.role ?? Role.ghost;
   }
 
@@ -46,6 +51,7 @@ class _UserPageState extends State<UserPage> {
     _lastNameController.dispose();
     _usernameController.dispose();
     _passwordController.dispose();
+    _passwordConfirmController.dispose();
     super.dispose();
   }
 
@@ -120,10 +126,23 @@ class _UserPageState extends State<UserPage> {
                     CustomCupertinoTextField(
                       placeholder: 'Password',
                       controller: _passwordController,
-                      prefixIcon: CupertinoIcons.lock, //or globe, gotta decide
+                      prefixIcon: CupertinoIcons.lock,
                       validator: (value) => user == null
                           ? User.validatePassword(value)
                           : null, //There isn't anything to validate, I just need to send the password only when its filled in
+                    ),
+                  if (_passwordController.text.trim().isNotEmpty)
+                    CustomCupertinoTextField(
+                      placeholder: 'Password confirm',
+                      controller: _passwordConfirmController,
+                      prefixIcon: CupertinoIcons.lock_rotation,
+                      validator: (value) {
+                        if (value != _passwordController.text &&
+                            _passwordController.text.trim().isNotEmpty) {
+                          return 'Passwords do not match';
+                        }
+                        return null;
+                      }, //There isn't anything to validate, I just need to send the password only when its filled in
                     ),
                   //TODO: Mby add password confirmation
                   CupertinoPicker.builder(
@@ -155,6 +174,7 @@ class _UserPageState extends State<UserPage> {
                   if (widget.isEditable || widget.isAdmin)
                     CupertinoButton.filled(
                       onPressed: () async {
+                        print(_formKey.currentState!.validate());
                         if (!_formKey.currentState!.validate()) return;
 
                         if (_selectedRole == Role.admin &&
@@ -172,7 +192,7 @@ class _UserPageState extends State<UserPage> {
                           username: _usernameController.text.trim(),
                           role: _selectedRole!,
                         );
-                        if (_passwordController.text.trim() != '') {
+                        if (_passwordController.text.trim().isNotEmpty) {
                           newUser.password = _passwordController.text.trim();
                         }
 
@@ -191,24 +211,17 @@ class _UserPageState extends State<UserPage> {
                             showError(response);
                           }
                         } else {
+                          List<Response> errors = [];
                           if (user != newUser) {
-                            final response = await updateUser(newUser);
-                            if (response.statusCode == 200 ||
-                                response.statusCode == 201) {
-                              Navigator.pop(context, response.data['payload']);
-                            } else {
-                              showError(response);
-                            }
+                            await updateUser(newUser).then((value) => value.statusCode != 200 && value.statusCode != 201 ? errors.add(value) : null);
                           }
-                          if (user!.role != _selectedRole) {
-                            final response =
-                                await updateRole(newUser.id!, _selectedRole!);
-                            if (response.statusCode == 200 ||
-                                response.statusCode == 201) {
-                              Navigator.pop(context, response.data['payload']);
-                            } else {
-                              showError(response);
-                            }
+                          if (user!.role != _selectedRole && errors.isEmpty) {
+                            await updateRole(newUser.id!, _selectedRole!).then((value) => value.statusCode != 200 && value.statusCode != 201 ? errors.add(value) : null);
+                          }
+                          if(errors.isNotEmpty) {
+                            showError(errors.first);
+                          } else {
+                            Navigator.pop(context, newUser);
                           }
                         }
                         hideLoadingOverlay(context);
