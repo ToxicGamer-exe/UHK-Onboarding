@@ -16,10 +16,10 @@ class SignInPage extends StatefulWidget {
   const SignInPage({super.key, this.customMessage});
 
   @override
-  _SignInPageState createState() => _SignInPageState();
+  State<SignInPage> createState() => SignInPageState();
 }
 
-class _SignInPageState extends State<SignInPage> {
+class SignInPageState extends State<SignInPage> {
   late TextEditingController _usernameController;
   late TextEditingController _passwordController;
 

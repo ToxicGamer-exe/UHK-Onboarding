@@ -11,7 +11,7 @@ class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
 
   @override
-  _SignUpPageState createState() => _SignUpPageState();
+  State<SignUpPage> createState() => _SignUpPageState();
 }
 
 class _SignUpPageState extends State<SignUpPage> {
@@ -96,7 +96,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         }
                         return null;
                       }),
-                  SizedBox(height: 5),
+                  const SizedBox(height: 5),
                   CupertinoButton.filled(
                     onPressed: () async {
                       if (!_formKey.currentState!.validate()) return;

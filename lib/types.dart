@@ -1,5 +1,3 @@
-//make a user schema
-
 import 'package:equatable/equatable.dart';
 
 class User extends Equatable {
@@ -10,6 +8,7 @@ class User extends Equatable {
   String? password;
   final Role role;
 
+  @override
   List<Object?> get props => [id, firstName, lastName, username, password];
 
   User(

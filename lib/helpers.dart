@@ -61,7 +61,7 @@ void showCupertinoSnackBar({
 }
 
 Future<dynamic> showCupertinoPasswordConfirm(
-    BuildContext context, TextEditingController _passwordController) {
+    BuildContext context, TextEditingController passwordController) {
   showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
@@ -78,7 +78,7 @@ Future<dynamic> showCupertinoPasswordConfirm(
                         const EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
                     child: CupertinoTextField(
                       placeholder: 'Password',
-                      controller: _passwordController,
+                      controller: passwordController,
                     ),
                   ),
                   Row(

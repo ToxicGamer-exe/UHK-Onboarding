@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:uhk_onboarding/api.dart';
 import 'package:uhk_onboarding/types.dart';
 
@@ -16,7 +15,7 @@ class UserPage extends StatefulWidget {
   final bool isAdmin;
 
   @override
-  _UserPageState createState() => _UserPageState();
+  State<UserPage> createState() => _UserPageState();
 }
 
 class _UserPageState extends State<UserPage> {
@@ -55,12 +54,12 @@ class _UserPageState extends State<UserPage> {
     super.dispose();
   }
 
-  Future<dynamic> _showAdminAlert() {
+  Future<dynamic> _showAdminAlert([bool demotion = false]) {
     return showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
         title: const Text('Are you sure?'),
-        content: const Text(
+        content: Text(demotion ? 'You are about to demote an admin user. This user will lose all the admin rights.' :
             'You are about to create an admin user. This user will have access to all the data in the app.'),
         actions: [
           CupertinoDialogAction(
@@ -68,7 +67,7 @@ class _UserPageState extends State<UserPage> {
             onPressed: () => Navigator.pop(context),
           ),
           CupertinoDialogAction(
-            child: const Text('Create'),
+            child: const Text('Continue'),
             onPressed: () => Navigator.pop(context, true),
           ),
         ],
@@ -142,9 +141,8 @@ class _UserPageState extends State<UserPage> {
                           return 'Passwords do not match';
                         }
                         return null;
-                      }, //There isn't anything to validate, I just need to send the password only when its filled in
+                      },
                     ),
-                  //TODO: Mby add password confirmation
                   CupertinoPicker.builder(
                     itemExtent: 50,
                     scrollController: FixedExtentScrollController(
@@ -174,14 +172,13 @@ class _UserPageState extends State<UserPage> {
                   if (widget.isEditable || widget.isAdmin)
                     CupertinoButton.filled(
                       onPressed: () async {
-                        print(_formKey.currentState!.validate());
                         if (!_formKey.currentState!.validate()) return;
 
                         if (_selectedRole == Role.admin &&
-                            user?.role != Role.admin) {
-                          final adminConsent = await _showAdminAlert();
+                            user?.role != Role.admin || user?.role == Role.admin && _selectedRole != Role.admin) {
+                          final adminConsent = await _showAdminAlert(user?.role == Role.admin);
                           if (adminConsent == null || !adminConsent) return;
-                        } //TODO: Warn/prevent user from demoting themselves
+                        }
 
                         showLoadingOverlay(context);
 
@@ -226,7 +223,7 @@ class _UserPageState extends State<UserPage> {
                         }
                         hideLoadingOverlay(context);
                       },
-                      child: Text('Save'),
+                      child: const Text('Save'),
                     ),
                 ],
               ),
