@@ -15,7 +15,7 @@ To get a local copy up and running follow these simple steps:
 
 ### Dependencies
 
-####General:
+#### General:
 * Flutter & Dart
 * Any IDE that can run Flutter apps such as Android Studio/VS Code
 * Git
@@ -27,7 +27,7 @@ To get a local copy up and running follow these simple steps:
 
 For libraries, please refer to pubspec.yaml file.
 
-####This app was tested with:
+#### This app was tested with:
 * Flutter 3.10.6, Dart 2.13.4
 * Android Studio 2022.2, VS Code 1.70.2
 * Git 2.32.0
